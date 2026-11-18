@@ -1,0 +1,6 @@
+/* Founder Alpha status disclosures; does not replace the approved design tokens. */
+.wtp-demo-banner { position: relative; z-index: 30; padding: 10px 16px; background: #281e1b; color: #f1d9a8; text-align: center; font: 600 12px/1.5 system-ui,sans-serif; letter-spacing: .08em; }
+.wtp-setup-panel { box-sizing: border-box; background: #1d1a1b; color: #f7e8d6; min-height: 100vh; padding: clamp(30px,8vw,120px); font: 18px/1.7 system-ui,sans-serif; }
+.wtp-setup-panel h1 { font: 500 clamp(28px,4vw,56px)/1.1 Georgia,serif; color: #dfc08e; }
+.wtp-setup-panel a { color: #dfc08e; }
+.wtp-setup-panel code { background: #3b3332; padding: 2px 6px; }

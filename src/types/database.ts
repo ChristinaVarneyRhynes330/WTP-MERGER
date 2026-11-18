@@ -1,0 +1,131 @@
+export type MatterRole = "owner" | "editor" | "viewer"
+
+export type Matter = {
+  id: string
+  owner_id: string
+  name: string
+  jurisdiction: string | null
+  court: string | null
+  case_number: string | null
+  stage: string | null
+  active_proceeding: string | null
+  created_at: string
+  updated_at: string
+  archived_at: string | null
+}
+
+export type MatterInsert = Pick<Matter, "name" | "owner_id"> &
+  Partial<
+    Pick<
+      Matter,
+      "jurisdiction" | "court" | "case_number" | "stage" | "active_proceeding"
+    >
+  >
+
+export type MatterUpdate = Partial<
+  Pick<
+    Matter,
+    | "name"
+    | "jurisdiction"
+    | "court"
+    | "case_number"
+    | "stage"
+    | "active_proceeding"
+    | "archived_at"
+  >
+>
+
+export type MatterMember = {
+  matter_id: string
+  user_id: string
+  role: MatterRole
+  created_at: string
+}
+
+export type SourceFile = {
+  id: string
+  matter_id: string
+  source_id: string
+  bucket_id: "matter-originals"
+  object_path: string
+  original_name: string
+  media_type: string | null
+  byte_size: number | null
+  sha256: string | null
+  uploaded_by: string
+  created_at: string
+}
+
+type Table<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
+  Row: Row
+  Insert: Insert
+  Update: Update
+  Relationships: []
+}
+
+export type Database = {
+  public: {
+    Tables: {
+      matters: Table<Matter, MatterInsert, MatterUpdate>
+      matter_members: Table<
+        MatterMember,
+        Pick<MatterMember, "matter_id" | "user_id" | "role">,
+        Pick<MatterMember, "role">
+      >
+      source_files: Table<
+        SourceFile,
+        Pick<
+          SourceFile,
+          | "matter_id"
+          | "source_id"
+          | "object_path"
+          | "original_name"
+          | "uploaded_by"
+        > &
+          Partial<
+            Pick<
+              SourceFile,
+              "id" | "bucket_id" | "media_type" | "byte_size" | "sha256"
+            >
+          >,
+        never
+      >
+    }
+    Views: Record<string, never>
+    Functions: {
+      can_edit_matter: {
+        Args: { target_matter_id: string }
+        Returns: boolean
+      }
+      is_matter_member: {
+        Args: { target_matter_id: string }
+        Returns: boolean
+      }
+      owns_matter: {
+        Args: { target_matter_id: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      matter_role: MatterRole
+      confirmation_state:
+        | "ai_suggested"
+        | "user_confirmed"
+        | "disputed"
+        | "unverified"
+        | "needs_source"
+      content_type:
+        | "original_source"
+        | "source_assertion"
+        | "user_recollection"
+        | "legal_authority"
+        | "user_interpretation"
+        | "ai_summary"
+        | "ai_inference"
+        | "conflicting_account"
+        | "unknown"
+        | "draft"
+    }
+    CompositeTypes: Record<string, never>
+  }
+}

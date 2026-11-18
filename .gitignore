@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+.vite/
+.DS_Store
+.vscode/
+.tmp/
+supabase/.temp/
+supabase/.branches/
+playwright/.auth/
+test-results/
