@@ -759,7 +759,7 @@ textarea { padding: 11px 12px; resize: vertical; }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   html,
