@@ -769,7 +769,11 @@ textarea { padding: 11px 12px; resize: vertical; }
   }
 
   body {
-    @apply bg-[#131414] text-[#F8F0EE] font-body antialiased;
+    background-color: #131414;
+    color: #F8F0EE;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -777,7 +781,7 @@ textarea { padding: 11px 12px; resize: vertical; }
   h2,
   h3,
   h4 {
-    @apply font-heading;
+    font-family: var(--font-heading);
     letter-spacing: -0.01em;
   }
 
