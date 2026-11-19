@@ -214,6 +214,15 @@ export type CounselQaItem = {
   updated_at: string
 }
 
+export type HandoffPathwayUpdate = Pick<
+  EvidencePathway,
+  | "clerk_filing_status"
+  | "proffer_status"
+  | "admission_status"
+  | "transmitted_roa_status"
+  | "pathway_rule"
+>
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
   Row: Row
   Insert: Insert

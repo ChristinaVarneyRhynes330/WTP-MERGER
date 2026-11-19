@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react"
+import type { Session } from "@supabase/supabase-js"
 import { ContextBar } from "./components/layout/ContextBar"
 import { Sidebar } from "./components/layout/Sidebar"
 import { BotanicalArt } from "./components/brand"
@@ -27,6 +28,7 @@ import {
 } from "./features/public/Public"
 import { useLook } from "./lib/look"
 import { isSupabaseConfigured } from "./lib/supabase"
+import { getSession, onAuthStateChange } from "./services/auth"
 import { AppProvider, useApp } from "./state/AppContext"
 import type { ViewId } from "./types"
 
@@ -206,6 +208,34 @@ function parseRoute(): Route {
   return "home"
 }
 
+function PrivateCounselHandoffRoute() {
+  const [session, setSession] = useState<Session | null>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    void getSession()
+      .then((current) => {
+        if (active) {
+          setSession(current)
+          setReady(true)
+        }
+      })
+      .catch(() => active && setReady(true))
+    const unsubscribe = onAuthStateChange((_event, next) => {
+      if (active) setSession(next)
+    })
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [])
+
+  if (!ready) return null
+  if (!session) return <SignInView />
+  return <CounselHandoffView />
+}
+
 export default function App() {
   const [route, setRoute] = useState<Route>(parseRoute)
   useLook()
@@ -241,7 +271,7 @@ export default function App() {
         </div>
       )
     case "counsel-handoff/5D2026-2915":
-      return isSupabaseConfigured ? <CounselHandoffView /> : (
+      return isSupabaseConfigured ? <PrivateCounselHandoffRoute /> : (
         <div className="wtp-setup-panel" role="status">
           <h1>Private handoff setup required</h1>
           <p>Authenticated Supabase access is required for this module.</p>
