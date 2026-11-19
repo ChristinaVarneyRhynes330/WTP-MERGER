@@ -29,6 +29,7 @@ import {
 import { useLook } from "./lib/look"
 import { isSupabaseConfigured } from "./lib/supabase"
 import { getSession, onAuthStateChange } from "./services/auth"
+import { getActiveMatterId } from "./services/activeMatter"
 import { AppProvider, useApp } from "./state/AppContext"
 import type { ViewId } from "./types"
 
@@ -65,7 +66,7 @@ function CurrentView() {
   }
 }
 
-function Workspace() {
+function Workspace({ privateMode = false }: { privateMode?: boolean }) {
   const { state, dispatch, saveError } = useApp()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCompact, setSidebarCompact] = useState(false)
@@ -149,6 +150,7 @@ function Workspace() {
           <ContextBar
             onMenu={() => setSidebarOpen(true)}
             onSource={() => setSourceSheetOpen(true)}
+            privateMode={privateMode}
           />
           <CurrentView />
         </section>
@@ -236,6 +238,41 @@ function PrivateCounselHandoffRoute() {
   return <CounselHandoffView />
 }
 
+function PrivateWorkspaceRoute() {
+  const [session, setSession] = useState<Session | null>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    void getSession()
+      .then((current) => {
+        if (active) {
+          setSession(current)
+          setReady(true)
+        }
+      })
+      .catch(() => active && setReady(true))
+    const unsubscribe = onAuthStateChange((_event, next) => {
+      if (active) setSession(next)
+    })
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [])
+
+  if (!ready) return null
+  if (!session) return <SignInView />
+  if (!getActiveMatterId()) {
+    return <SignInView />
+  }
+  return (
+    <AppProvider>
+      <Workspace privateMode />
+    </AppProvider>
+  )
+}
+
 export default function App() {
   const [route, setRoute] = useState<Route>(parseRoute)
   useLook()
@@ -261,12 +298,19 @@ export default function App() {
     case "help":
       return <HelpPage />
     case "signin":
-    case "app":
       return isSupabaseConfigured ? <SignInView /> : (
         <div className="wtp-setup-panel" role="status">
           <h1>Private application setup required</h1>
           <p>The founder-alpha interface is prepared, but no verified Supabase project is configured.</p>
           <p>Add the public URL and publishable key to a local <code>.env.local</code> file, apply the reviewed migration, and deploy the source-preservation function. Do not upload confidential case files until the security tests pass.</p>
+          <a href="#/">Return to public preview</a>
+        </div>
+      )
+    case "app":
+      return isSupabaseConfigured ? <PrivateWorkspaceRoute /> : (
+        <div className="wtp-setup-panel" role="status">
+          <h1>Private application setup required</h1>
+          <p>Add a verified Supabase project before opening the private workspace.</p>
           <a href="#/">Return to public preview</a>
         </div>
       )

@@ -8,6 +8,8 @@ const handoffSql = read("../supabase/migrations/20261119120000_counsel_handoff_5
 const edge = read("../supabase/functions/make-server-82d9c8b6/index.ts");
 const triage = read("../supabase/functions/triage-counsel-handoff/index.ts");
 const app = read("../src/App.tsx");
+const views = read("../src/features/views.tsx");
+const contextBar = read("../src/components/layout/ContextBar.tsx");
 const lib = read("../src/lib/supabase.ts");
 const demo = read("../src/data/demo.ts");
 
@@ -48,4 +50,13 @@ test("counsel handoff route and triage require authentication", () => {
   assert.match(triage, /Authentication required/);
   assert.match(triage, /is_matter_member/);
   assert.match(triage, /unverified/i);
+});
+
+test("private workspace routes require session and selected matter", () => {
+  assert.match(app, /function PrivateWorkspaceRoute/);
+  assert.match(app, /if \(!session\) return <SignInView \/>/);
+  assert.match(app, /if \(!getActiveMatterId\(\)\)/);
+  assert.match(app, /<Workspace privateMode \/>/);
+  assert.match(views, /location\.hash = "#\/app"/);
+  assert.match(contextBar, /privateMode \? "Private workspace" : "Fictional demo"/);
 });

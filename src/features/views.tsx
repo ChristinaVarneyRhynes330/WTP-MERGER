@@ -1165,6 +1165,7 @@ export function SignInView() {
       setActiveMatterId(matter.id)
       setPrimaryValue("")
       setSecondaryValue("")
+      location.hash = "#/app"
     } catch (submitError) {
       const detail =
         submitError instanceof Error ? submitError.message.toLowerCase() : ""
@@ -1371,6 +1372,7 @@ export function SignInView() {
                 onClick={() => {
                   setSelectedMatter(matter)
                   setActiveMatterId(matter.id)
+                  location.hash = "#/app"
                 }}
               >
                 {matter.name}
@@ -1460,7 +1462,16 @@ export function SignInView() {
               {uploadMessage && (
                 <div className="preview-note">
                   <Check size={18} />
-                  {uploadMessage}
+                  <span>{uploadMessage}</span>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={() => {
+                      location.hash = "#/app"
+                    }}
+                  >
+                    Open workspace
+                  </Button>
                 </div>
               )}
               <div className="divider">

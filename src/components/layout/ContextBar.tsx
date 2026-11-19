@@ -10,9 +10,11 @@ import { Button, IconButton, rememberModalTrigger } from "../ui"
 export function ContextBar({
   onMenu,
   onSource,
+  privateMode = false,
 }: {
   onMenu: () => void
   onSource: () => void
+  privateMode?: boolean
 }) {
   const { state, dispatch } = useApp()
   const activeCase = cases.find((item) => item.id === state.activeCaseId)!
@@ -47,7 +49,7 @@ export function ContextBar({
             : proceeding.name}
         </span>
       </div>
-      <span className="demo-pill">Fictional demo</span>
+      <span className="demo-pill">{privateMode ? "Private workspace" : "Fictional demo"}</span>
       <Button
         icon={PanelRightOpen}
         variant="ghost"
