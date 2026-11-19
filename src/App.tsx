@@ -5,6 +5,7 @@ import { BotanicalArt } from "./components/brand"
 import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
+import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
 import {
   DesignReviewView,
   DraftsView,
@@ -182,6 +183,7 @@ type Route =
   | "signin"
   | "app"
   | "demo"
+  | "counsel-handoff/5D2026-2915"
 
 const siteRoutes: Route[] = [
   "platform",
@@ -193,6 +195,7 @@ const siteRoutes: Route[] = [
   "help",
   "signin",
   "app",
+  "counsel-handoff/5D2026-2915",
 ]
 
 function parseRoute(): Route {
@@ -234,6 +237,14 @@ export default function App() {
           <h1>Private application setup required</h1>
           <p>The founder-alpha interface is prepared, but no verified Supabase project is configured.</p>
           <p>Add the public URL and publishable key to a local <code>.env.local</code> file, apply the reviewed migration, and deploy the source-preservation function. Do not upload confidential case files until the security tests pass.</p>
+          <a href="#/">Return to public preview</a>
+        </div>
+      )
+    case "counsel-handoff/5D2026-2915":
+      return isSupabaseConfigured ? <CounselHandoffView /> : (
+        <div className="wtp-setup-panel" role="status">
+          <h1>Private handoff setup required</h1>
+          <p>Authenticated Supabase access is required for this module.</p>
           <a href="#/">Return to public preview</a>
         </div>
       )

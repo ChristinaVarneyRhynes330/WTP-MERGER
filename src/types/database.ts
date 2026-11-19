@@ -163,6 +163,57 @@ export type ProcessingJob = {
   updated_at: string
 }
 
+export type HandoffFile = {
+  id: string
+  matter_id: string
+  drive_file_id: string
+  full_tree_path: string
+  file_name: string
+  file_url: string | null
+  mime_type: string | null
+  last_updated: string | null
+  review_status: "unverified" | "in_review" | "verified" | "archived"
+  priority: "low" | "normal" | "high" | "urgent"
+  assigned_to: string | null
+  notes: string | null
+  preservation_flag: boolean
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type EvidencePathway = {
+  id: string
+  matter_id: string
+  handoff_file_id: string
+  clerk_filing_status: "unknown" | "filed" | "not_filed" | "unverified"
+  proffer_status: "unknown" | "offered" | "not_offered" | "unverified"
+  admission_status: "unknown" | "admitted" | "not_admitted" | "unverified"
+  transmitted_roa_status:
+    | "unknown"
+    | "included"
+    | "not_included"
+    | "unverified"
+  pathway_rule: string | null
+  citations: string[]
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type CounselQaItem = {
+  id: string
+  matter_id: string
+  handoff_file_id: string | null
+  question: string
+  status: "active" | "resolved" | "archived" | "unverified"
+  answer: string | null
+  assigned_to: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
   Row: Row
   Insert: Insert
@@ -299,6 +350,96 @@ export type Database = {
           >
         >
       >
+      handoff_files: Table<
+        HandoffFile,
+        Pick<
+          HandoffFile,
+          "matter_id" | "drive_file_id" | "full_tree_path" | "file_name"
+        > &
+          Partial<
+            Pick<
+              HandoffFile,
+              | "id"
+              | "file_url"
+              | "mime_type"
+              | "last_updated"
+              | "review_status"
+              | "priority"
+              | "assigned_to"
+              | "notes"
+              | "preservation_flag"
+              | "created_by"
+            >
+          >,
+        Partial<
+          Pick<
+            HandoffFile,
+            | "full_tree_path"
+            | "file_name"
+            | "file_url"
+            | "mime_type"
+            | "last_updated"
+            | "review_status"
+            | "priority"
+            | "assigned_to"
+            | "notes"
+            | "preservation_flag"
+          >
+        >
+      >
+      evidence_pathways: Table<
+        EvidencePathway,
+        Pick<EvidencePathway, "matter_id" | "handoff_file_id"> &
+          Partial<
+            Pick<
+              EvidencePathway,
+              | "id"
+              | "clerk_filing_status"
+              | "proffer_status"
+              | "admission_status"
+              | "transmitted_roa_status"
+              | "pathway_rule"
+              | "citations"
+              | "created_by"
+            >
+          >,
+        Partial<
+          Pick<
+            EvidencePathway,
+            | "clerk_filing_status"
+            | "proffer_status"
+            | "admission_status"
+            | "transmitted_roa_status"
+            | "pathway_rule"
+            | "citations"
+          >
+        >
+      >
+      counsel_qa_items: Table<
+        CounselQaItem,
+        Pick<CounselQaItem, "matter_id" | "question"> &
+          Partial<
+            Pick<
+              CounselQaItem,
+              | "id"
+              | "handoff_file_id"
+              | "status"
+              | "answer"
+              | "assigned_to"
+              | "created_by"
+            >
+          >,
+        Partial<
+          Pick<
+            CounselQaItem,
+            | "handoff_file_id"
+            | "question"
+            | "status"
+            | "answer"
+            | "assigned_to"
+          >
+        >
+      >
       processing_jobs: Table<
         ProcessingJob,
         Pick<
@@ -362,6 +503,18 @@ export type Database = {
           content: string
           similarity: number
         }>
+      }
+      upsert_handoff_file_scan: {
+        Args: {
+          p_matter_id: string
+          p_drive_file_id: string
+          p_full_tree_path: string
+          p_file_name: string
+          p_file_url?: string | null
+          p_mime_type?: string | null
+          p_last_updated?: string | null
+        }
+        Returns: HandoffFile
       }
     }
     Enums: {

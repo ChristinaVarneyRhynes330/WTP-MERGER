@@ -432,6 +432,29 @@ textarea { padding: 11px 12px; resize: vertical; }
 .page-header h1 { margin: 7px 0 9px; font-size: 32px; font-weight: 500; text-transform: capitalize; }
 .page-header p { max-width: 680px; margin: 0; color: var(--color-text-muted); font-size: 13px; line-height: 1.65; }
 .page-header__actions { flex: 0 0 auto; }
+.counsel-handoff { max-width: 1180px; }
+.counsel-handoff__guardrail { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 22px; color: var(--color-text-muted); }
+.counsel-handoff__guardrail strong { color: var(--color-text-primary); }
+.counsel-handoff__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 32px; }
+.counsel-handoff__summary .glass-card { display: grid; gap: 8px; padding: 18px; }
+.counsel-handoff__summary strong { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.counsel-handoff__section { margin-top: 30px; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.section-heading h2 { margin: 5px 0 0; font-family: var(--font-display); font-size: 24px; font-weight: 500; }
+.counsel-handoff__files, .counsel-handoff__questions { display: grid; gap: 12px; }
+.counsel-handoff__file { padding: 18px; }
+.counsel-handoff__file-heading { display: flex; align-items: flex-start; gap: 12px; }
+.counsel-handoff__file-heading > svg { flex: 0 0 auto; color: var(--color-metal-light); }
+.counsel-handoff__file-heading h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.counsel-handoff__file-heading p { margin: 5px 0 0; color: var(--color-text-muted); font-size: 12px; overflow-wrap: anywhere; }
+.counsel-handoff__file-heading .status-text { margin-left: auto; flex: 0 0 auto; text-transform: capitalize; }
+.counsel-handoff__pathways { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; padding-top: 15px; border-top: 1px solid color-mix(in srgb, var(--color-border-subtle) 70%, transparent); }
+.counsel-handoff__pathways div { min-width: 0; }
+.counsel-handoff__pathways dt { color: var(--color-text-muted); font-size: 10px; line-height: 1.35; }
+.counsel-handoff__pathways dd { margin: 5px 0 0; color: var(--color-text-primary); font-size: 12px; text-transform: capitalize; }
+.counsel-handoff__questions .glass-card { padding: 16px 18px; }
+.counsel-handoff__question-status { display: flex; align-items: center; gap: 7px; color: var(--color-warning); font-size: 11px; text-transform: capitalize; }
+.counsel-handoff__questions p { margin: 9px 0 0; color: var(--color-text-primary); }
 .toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
 .search-field { display: flex; max-width: 480px; flex: 1; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--color-border-subtle); border-radius: 12px; background: var(--color-surface-solid); color: var(--color-text-muted); }
 .search-field input { border: 0; background: transparent; }
@@ -680,6 +703,11 @@ textarea { padding: 11px 12px; resize: vertical; }
   .page-header { align-items: stretch; flex-direction: column; gap: 14px; margin-bottom: 22px; }
   .page-header h1 { font-size: 24px; }
   .page-header__actions .button { width: 100%; }
+  .counsel-handoff__summary { grid-template-columns: 1fr; }
+  .section-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .counsel-handoff__file-heading { flex-wrap: wrap; }
+  .counsel-handoff__file-heading .status-text { margin-left: 32px; }
+  .counsel-handoff__pathways { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .toolbar { align-items: stretch; flex-direction: column; }
   .search-field { max-width: none; min-height: 44px; }
   .list-header { display: none; }
