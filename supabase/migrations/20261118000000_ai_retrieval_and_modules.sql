@@ -1,5 +1,105 @@
 create extension if not exists vector with schema extensions;
 
+-- Compatibility guards for hosted projects whose foundation migrations are
+-- present in schema but were created outside this migration ledger.
+create or replace function public.is_matter_member(target_matter_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.matter_members membership
+    where membership.matter_id = target_matter_id
+      and membership.user_id = (select auth.uid())
+  );
+$$;
+
+create or replace function public.can_edit_matter(target_matter_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.matter_members membership
+    where membership.matter_id = target_matter_id
+      and membership.user_id = (select auth.uid())
+      and membership.role in ('owner', 'editor')
+  );
+$$;
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create or replace function public.protect_record_scope()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.matter_id <> old.matter_id then
+    raise exception 'matter_id cannot be changed';
+  end if;
+  if to_jsonb(new) ? 'created_by'
+    and new.created_by <> old.created_by then
+    raise exception 'created_by cannot be changed';
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.write_audit_log()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  old_data jsonb;
+  new_data jsonb;
+  target_data jsonb;
+begin
+  old_data := case when tg_op in ('UPDATE', 'DELETE') then to_jsonb(old) end;
+  new_data := case when tg_op in ('INSERT', 'UPDATE') then to_jsonb(new) end;
+  target_data := coalesce(new_data, old_data);
+  insert into public.audit_log (
+    matter_id,
+    table_name,
+    record_id,
+    action,
+    actor_id,
+    old_record,
+    new_record
+  )
+  values (
+    (target_data ->> 'matter_id')::uuid,
+    tg_table_name,
+    (target_data ->> 'id')::uuid,
+    tg_op,
+    auth.uid(),
+    old_data,
+    new_data
+  );
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+  return new;
+end;
+$$;
+
 alter table public.matters
   add column if not exists representation text
     check (representation in ('represented_by_counsel', 'self_represented')),
@@ -14,7 +114,7 @@ create table if not exists public.source_chunks (
   page_number integer check (page_number is null or page_number > 0),
   chunk_index integer not null default 0 check (chunk_index >= 0),
   content text not null check (char_length(trim(content)) > 0),
-  embedding vector(768),
+  embedding extensions.vector(768),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (id, matter_id),
@@ -28,7 +128,7 @@ create index if not exists source_chunks_matter_source_idx
   on public.source_chunks(matter_id, source_id, page_number, chunk_index);
 
 create index if not exists source_chunks_embedding_idx
-  on public.source_chunks using hnsw (embedding vector_cosine_ops);
+  on public.source_chunks using hnsw (embedding extensions.vector_cosine_ops);
 
 create table if not exists public.hearing_notes (
   id uuid primary key default gen_random_uuid(),
@@ -69,7 +169,7 @@ create index if not exists learning_progress_matter_idx
   on public.learning_progress(matter_id, module_number);
 
 create or replace function public.match_source_chunks(
-  query_embedding vector(768),
+  query_embedding extensions.vector(768),
   target_matter_id uuid,
   match_threshold float default 0.5,
   match_count integer default 5
@@ -95,18 +195,18 @@ as $$
     chunks.page_number,
     chunks.chunk_index,
     chunks.content,
-    (1 - (chunks.embedding <=> query_embedding))::float as similarity
+    (1 - (chunks.embedding OPERATOR(extensions.<=>) query_embedding))::float as similarity
   from public.source_chunks as chunks
   where chunks.matter_id = target_matter_id
     and public.is_matter_member(target_matter_id)
     and chunks.embedding is not null
-    and (1 - (chunks.embedding <=> query_embedding)) >= coalesce(match_threshold, 0.5)
-  order by chunks.embedding <=> query_embedding
+    and (1 - (chunks.embedding OPERATOR(extensions.<=>) query_embedding)) >= coalesce(match_threshold, 0.5)
+  order by chunks.embedding OPERATOR(extensions.<=>) query_embedding
   limit least(greatest(coalesce(match_count, 5), 1), 100);
 $$;
 
-revoke all on function public.match_source_chunks(vector(768), uuid, float, integer) from public;
-grant execute on function public.match_source_chunks(vector(768), uuid, float, integer) to authenticated;
+revoke all on function public.match_source_chunks(extensions.vector(768), uuid, float, integer) from public;
+grant execute on function public.match_source_chunks(extensions.vector(768), uuid, float, integer) to authenticated;
 
 alter table public.source_chunks enable row level security;
 alter table public.hearing_notes enable row level security;

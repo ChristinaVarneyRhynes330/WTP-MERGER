@@ -1,0 +1,2 @@
+-- Remote baseline migration already applied to hosted project.
+-- This file keeps the local migration ledger aligned with the remote ledger.
