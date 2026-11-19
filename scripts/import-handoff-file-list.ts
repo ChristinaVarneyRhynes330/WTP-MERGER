@@ -24,22 +24,37 @@ type ImportRow = {
   transmittedRoaStatus: "unknown" | "included" | "not_included" | "unverified"
 }
 
+const envFile = path.resolve(".env.local")
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, "utf8").split(/\r?\n/)) {
+    const match = line.match(/^([^#=]+)=(.*)$/)
+    if (!match) continue
+    const name = match[1].trim()
+    if (process.env[name] === undefined) {
+      process.env[name] = match[2].trim().replace(/^"(.*)"$/, "$1")
+    }
+  }
+}
+
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? ""
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
 const matterId = process.env.HANDOFF_MATTER_ID ?? ""
 const createdBy = process.env.HANDOFF_CREATED_BY ?? ""
 const batchSize = Number(process.env.IMPORT_BATCH_SIZE ?? "100")
+const dryRun = process.argv.includes("--dry-run")
 
-if (!supabaseUrl || !serviceRoleKey || !matterId || !createdBy) {
+if (!dryRun && (!supabaseUrl || !serviceRoleKey || !matterId || !createdBy)) {
   console.error(
     "Required env vars: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, HANDOFF_MATTER_ID, HANDOFF_CREATED_BY",
   )
   process.exit(1)
 }
 
-const supabase = createClient(supabaseUrl, serviceRoleKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-})
+const supabase = dryRun
+  ? null
+  : createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
 
 function value(row: RawRow, ...keys: string[]) {
   for (const key of keys) {
@@ -137,13 +152,64 @@ function statusValue(
 
 function normalizeRows(rows: RawRow[]) {
   const deduped = new Map<string, ImportRow>()
-  for (const row of rows) {
+  const hasLetterColumns = rows.some((row) =>
+    Object.hasOwn(row, "A") || Object.hasOwn(row, "Full Tree Path"),
+  )
+  const headerRow = hasLetterColumns
+    ? rows.find((row) =>
+        Object.hasOwn(row, "A") &&
+        value(row, "A").toLowerCase().includes("full tree path"),
+      )
+    : undefined
+  const letterHeaders =
+    hasLetterColumns && headerRow
+      ? [
+          "col_0",
+          value(headerRow, "A"),
+          value(headerRow, "B"),
+          value(headerRow, "C"),
+          value(headerRow, "D"),
+          value(headerRow, "E"),
+          value(headerRow, "F"),
+          value(headerRow, "G"),
+          value(headerRow, "H"),
+          value(headerRow, "I"),
+          value(headerRow, "J"),
+        ]
+      : null
+
+  for (const sourceRow of rows) {
+    let row = sourceRow
+    if (letterHeaders) {
+      if (sourceRow.col_0 === "#" || !sourceRow.col_0) continue
+      row = {
+        "#": sourceRow.col_0,
+        [letterHeaders[1]]: sourceRow.A,
+        [letterHeaders[2]]: sourceRow.B,
+        [letterHeaders[3]]: sourceRow.C,
+        [letterHeaders[4]]: sourceRow.D,
+        [letterHeaders[5]]: sourceRow.E,
+        [letterHeaders[6]]: sourceRow.F,
+        [letterHeaders[7]]: sourceRow.G,
+        [letterHeaders[8]]: sourceRow.H,
+        [letterHeaders[9]]: sourceRow.I,
+        [letterHeaders[10]]: sourceRow.J,
+      }
+    }
     const fullTreePath = value(row, "Full Tree Path", "Path")
     const fileName = value(row, "File Name", "Name") || fullTreePath.split(/[\\/]/).pop()
     if (!fileName) continue
 
     const review = value(row, "Review Status").toLowerCase()
     const priority = value(row, "Priority").toLowerCase()
+    const normalizedPriority: ImportRow["priority"] =
+      priority.includes("urgent") || priority.includes("critical")
+        ? "urgent"
+        : priority.includes("high")
+          ? "high"
+          : ["low", "normal"].includes(priority)
+            ? priority as ImportRow["priority"]
+            : "normal"
     const candidate: ImportRow = {
       driveFileId: driveId(row, fullTreePath || fileName, fileName),
       fullTreePath: fullTreePath || fileName,
@@ -155,12 +221,10 @@ function normalizeRows(rows: RawRow[]) {
         ? "verified"
         : review === "archived"
           ? "archived"
-          : review === "in_review" || review === "in review"
+          : review === "in_review" || review === "in review" || review.includes("reviewed")
             ? "in_review"
             : "unverified",
-      priority: ["low", "normal", "high", "urgent"].includes(priority)
-        ? priority as ImportRow["priority"]
-        : "normal",
+      priority: normalizedPriority,
       assignedTo: /^[0-9a-f-]{36}$/i.test(value(row, "Assigned To"))
         ? value(row, "Assigned To")
         : null,
@@ -195,6 +259,7 @@ function normalizeRows(rows: RawRow[]) {
 }
 
 async function importRows(rows: ImportRow[]) {
+  if (!supabase) throw new Error("Dry-run mode cannot execute database writes")
   const { data: existing, error: existingError } = await supabase
     .from("handoff_files")
     .select("id,drive_file_id")
@@ -278,7 +343,7 @@ async function importRows(rows: ImportRow[]) {
   }
 }
 
-const input = process.argv[2]
+const input = process.argv.slice(2).find((argument) => !argument.startsWith("--"))
 if (!input) {
   console.error("Usage: npm run import:handoff -- <file-list.csv|file-list.json>")
   process.exit(1)
@@ -288,9 +353,27 @@ const inputPath = path.resolve(input)
 if (!fs.existsSync(inputPath)) throw new Error(`Input file not found: ${inputPath}`)
 const raw = fs.readFileSync(inputPath, "utf8")
 const rows = inputPath.toLowerCase().endsWith(".json")
-  ? JSON.parse(raw) as RawRow[]
+  ? JSON.parse(raw.replace(/^\uFEFF/, "")) as RawRow[]
   : parseCsv(raw)
 const normalized = normalizeRows(rows)
 console.log(`Parsed ${rows.length} rows into ${normalized.length} unique records.`)
+if (dryRun) {
+  console.log(
+    JSON.stringify(
+      normalized.map((row) => ({
+        driveFileId: row.driveFileId,
+        fullTreePath: row.fullTreePath,
+        fileName: row.fileName,
+        reviewStatus: row.reviewStatus,
+        priority: row.priority,
+        notes: row.notes,
+        pathwayRule: row.pathwayRule,
+      })),
+      null,
+      2,
+    ),
+  )
+  process.exit(0)
+}
 await importRows(normalized)
 console.log("Handoff import completed without overwriting existing counsel review fields.")
