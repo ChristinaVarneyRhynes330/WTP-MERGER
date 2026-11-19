@@ -313,6 +313,24 @@ app.post(`${API_PREFIX}/sources`, async (c) => {
     })
     if (fileError) throw fileError
 
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    if (serviceRoleKey && supabaseUrl) {
+      fetch(`${supabaseUrl}/functions/v1/ingest-source`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ matterId, sourceId, sourceFileId }),
+      }).catch((error) => {
+        console.error(
+          "ingest-source dispatch failed",
+          error instanceof Error ? error.message : "unknown",
+        )
+      })
+    }
+
     return c.json(
       {
         source: {
@@ -333,8 +351,8 @@ app.post(`${API_PREFIX}/sources`, async (c) => {
           preserved: true,
         },
         processing: {
-          status: "not_requested",
-          message: "The unchanged original is preserved. Extraction is not connected yet.",
+          status: "queued",
+          message: "The unchanged original is preserved. Automated extraction is queued.",
         },
       },
       201,

@@ -33,6 +33,7 @@ import {
 import { SiteFrame } from "./site/Site"
 import { setLook, useLook } from "../lib/look"
 import { createMatter, listMatters } from "../services/matters"
+import { setActiveMatterId } from "../services/activeMatter"
 import {
   createOriginalSignedUrl,
   listSources,
@@ -1161,6 +1162,7 @@ export function SignInView() {
       })
       setMatters((current) => [matter, ...current])
       setSelectedMatter(matter)
+      setActiveMatterId(matter.id)
       setPrimaryValue("")
       setSecondaryValue("")
     } catch (submitError) {
@@ -1201,6 +1203,7 @@ export function SignInView() {
     setSubmitting(true)
     try {
       await signOut()
+      setActiveMatterId(null)
     } catch {
       setError("Sign out could not be completed. Please try again.")
     } finally {
@@ -1365,7 +1368,10 @@ export function SignInView() {
                 key={matter.id}
                 variant="secondary"
                 disabled={busy}
-                onClick={() => setSelectedMatter(matter)}
+                onClick={() => {
+                  setSelectedMatter(matter)
+                  setActiveMatterId(matter.id)
+                }}
               >
                 {matter.name}
               </Button>
@@ -1595,7 +1601,10 @@ export function SignInView() {
             type="button"
             variant="secondary"
             disabled={!selectedMatter}
-            onClick={() => setSelectedMatter(null)}
+            onClick={() => {
+              setSelectedMatter(null)
+              setActiveMatterId(null)
+            }}
           >
             {selectedMatter
               ? "Choose another matter"

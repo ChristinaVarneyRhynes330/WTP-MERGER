@@ -23,6 +23,8 @@ import {
 } from "react"
 import { Monogram } from "../../components/brand"
 import { sampleQuestion, sampleResponse } from "../../data/demo"
+import { askAssistant } from "../../services/ai"
+import { getActiveMatterId } from "../../services/activeMatter"
 import { useApp } from "../../state/AppContext"
 import type { Attachment, Message as MessageType } from "../../types"
 import {
@@ -198,48 +200,97 @@ function Composer() {
     event.target.value = ""
   }
 
-  const submit = () => {
+  const submit = async () => {
     const value = text.trim()
     if (!value && !attachments.length) return
     setStatus("loading")
-    window.setTimeout(() => {
-      const isSample =
-        value.toLowerCase().includes("provider email") &&
-        value.toLowerCase().includes("service summary")
-      const now = new Date().toISOString()
-      const userMessage: MessageType = {
-        id: crypto.randomUUID(),
-        conversationId: state.activeConversationId,
-        role: "user",
-        body:
-          value || `Attached ${attachments.length} local file(s) for review.`,
-        createdAt: now,
+    const now = new Date().toISOString()
+    const userMessage: MessageType = {
+      id: crypto.randomUUID(),
+      conversationId: state.activeConversationId,
+      role: "user",
+      body: value || `Attached ${attachments.length} local file(s) for review.`,
+      createdAt: now,
+    }
+    const matterId = getActiveMatterId()
+
+    try {
+      if (matterId) {
+        if (!value) throw new Error("Enter a text question for source-grounded analysis.")
+        const insight = await askAssistant({ matterId, question: value })
+        const sections = [
+          insight.answer,
+          insight.verifiedFacts.length
+            ? `What the records show\n${insight.verifiedFacts.map((item) => `• ${item}`).join("\n")}`
+            : "",
+          insight.unverifiedOrMissing.length
+            ? `Unverified or missing\n${insight.unverifiedOrMissing.map((item) => `• ${item}`).join("\n")}`
+            : "",
+          insight.uncertainty.length
+            ? `Uncertainty notes\n${insight.uncertainty.map((item) => `• ${item}`).join("\n")}`
+            : "",
+          insight.suggestedAction
+            ? `Suggested next action\n${insight.suggestedAction}`
+            : "",
+        ].filter(Boolean)
+        const response: MessageType = {
+          id: crypto.randomUUID(),
+          conversationId: state.activeConversationId,
+          role: "assistant",
+          body: sections.join("\n\n"),
+          citations: insight.citations.map((citation) => ({
+            passageId: citation.passageId,
+            label: citation.label,
+            sourceId: citation.sourceId,
+            pageNumber: citation.pageNumber ?? undefined,
+          })),
+          createdAt: now,
+        }
+        dispatch({ type: "addMessages", messages: [userMessage, response] })
+      } else {
+        const isSample =
+          value.toLowerCase().includes("provider email") &&
+          value.toLowerCase().includes("service summary")
+        const response: MessageType = isSample
+          ? {
+              id: crypto.randomUUID(),
+              conversationId: state.activeConversationId,
+              role: "assistant",
+              body: sampleResponse,
+              sample: true,
+              citations: [
+                { passageId: "passage-001", label: "DOC-001 · Email body" },
+                { passageId: "passage-002", label: "DOC-002 · Page 2" },
+              ],
+              createdAt: now,
+            }
+          : {
+              id: crypto.randomUUID(),
+              conversationId: state.activeConversationId,
+              role: "assistant",
+              body: "Live AI is not connected for this demo conversation. Your question was saved locally.",
+              sample: true,
+              createdAt: now,
+            }
+        await new Promise((resolve) => window.setTimeout(resolve, 650))
+        dispatch({ type: "addMessages", messages: [userMessage, response] })
       }
-      const response: MessageType = isSample
-        ? {
-            id: crypto.randomUUID(),
-            conversationId: state.activeConversationId,
-            role: "assistant",
-            body: sampleResponse,
-            sample: true,
-            citations: [
-              { passageId: "passage-001", label: "DOC-001 · Email body" },
-              { passageId: "passage-002", label: "DOC-002 · Page 2" },
-            ],
-            createdAt: now,
-          }
-        : {
-            id: crypto.randomUUID(),
-            conversationId: state.activeConversationId,
-            role: "assistant",
-            body: "Live AI is not connected in this design iteration. I saved your question in this conversation, but only the scripted record-comparison example returns a sample analysis.",
-            sample: true,
-            createdAt: now,
-          }
-      dispatch({ type: "addMessages", messages: [userMessage, response] })
       setAttachments([])
       setStatus("idle")
-    }, 650)
+    } catch (error) {
+      const response: MessageType = {
+        id: crypto.randomUUID(),
+        conversationId: state.activeConversationId,
+        role: "assistant",
+        body:
+          error instanceof Error
+            ? `The AI request could not be completed: ${error.message}`
+            : "The AI request could not be completed.",
+        createdAt: now,
+      }
+      dispatch({ type: "addMessages", messages: [userMessage, response] })
+      setStatus("error")
+    }
   }
 
   const handleKey = (event: KeyboardEvent<HTMLTextAreaElement>) => {

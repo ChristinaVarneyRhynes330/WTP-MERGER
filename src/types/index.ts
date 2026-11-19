@@ -17,6 +17,8 @@ export interface Proceeding {
 export interface Citation {
   passageId: string
   label: string
+  sourceId?: string
+  pageNumber?: number
 }
 
 export interface Message {

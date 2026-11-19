@@ -12,7 +12,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react"
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react"
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react"
 import { useApp } from "../../state/AppContext"
 import type { Draft, Note, TimelineEntry } from "../../types"
 import {
@@ -22,6 +22,9 @@ import {
   ReadingSurface,
   useModalSurface,
 } from "../../components/ui"
+import { supabase } from "../../lib/supabase"
+import { updateSourceConfirmation } from "../../services/sourceVerification"
+import type { ConfirmationState } from "../../types/database"
 
 export function SourceWorkbench({
   modal,
@@ -39,14 +42,157 @@ export function SourceWorkbench({
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [noteText, setNoteText] = useState("")
   const [copied, setCopied] = useState(false)
+  const [liveSource, setLiveSource] = useState<{
+    id: string
+    title: string
+    confirmationState: ConfirmationState
+  } | null>(null)
+  const [liveExcerpt, setLiveExcerpt] = useState("")
+  const [verificationMessage, setVerificationMessage] = useState("")
+  const [verificationBusy, setVerificationBusy] = useState(false)
   const workbenchRef = useRef<HTMLElement>(null)
   useModalSurface(modal && !timelineOpen, onClose, workbenchRef)
+  const liveCitation = state.messages
+    .flatMap((message) => message.citations ?? [])
+    .find((citation) => citation.passageId === state.selectedPassageId)
   const passage = state.passages.find(
     (item) => item.id === state.selectedPassageId,
   )
   const document = state.documents.find(
     (item) => item.id === passage?.documentId,
   )
+  useEffect(() => {
+    if (!liveCitation?.sourceId) {
+      setLiveSource(null)
+      setLiveExcerpt("")
+      return
+    }
+    let active = true
+    Promise.all([
+      supabase
+        .from("sources")
+        .select("id,title,confirmation_state")
+        .eq("id", liveCitation.sourceId)
+        .single(),
+      supabase
+        .from("source_chunks")
+        .select("content")
+        .eq("source_id", liveCitation.sourceId)
+        .eq("page_number", liveCitation.pageNumber ?? -1)
+        .limit(5),
+    ]).then(([sourceResult, chunkResult]) => {
+      if (!active) return
+      if (!sourceResult.error && sourceResult.data) {
+        setLiveSource({
+          id: sourceResult.data.id,
+          title: sourceResult.data.title,
+          confirmationState: sourceResult.data.confirmation_state,
+        })
+      }
+      if (!chunkResult.error) {
+        setLiveExcerpt(
+          (chunkResult.data ?? [])
+            .map((chunk) => chunk.content)
+            .join("\n\n"),
+        )
+      }
+    })
+    return () => {
+      active = false
+    }
+  }, [liveCitation?.sourceId, liveCitation?.pageNumber])
+
+  const verifyLiveSource = async (stateValue: ConfirmationState) => {
+    if (!liveSource) return
+    setVerificationBusy(true)
+    setVerificationMessage("")
+    try {
+      await updateSourceConfirmation(liveSource.id, stateValue)
+      setLiveSource((current) =>
+        current ? { ...current, confirmationState: stateValue } : current,
+      )
+      setVerificationMessage(
+        stateValue === "user_confirmed"
+          ? "Verified by user"
+          : stateValue === "disputed"
+            ? "Anomaly flagged"
+            : "Record contested",
+      )
+    } catch (error) {
+      setVerificationMessage(
+        error instanceof Error ? error.message : "The verification could not be saved.",
+      )
+    } finally {
+      setVerificationBusy(false)
+    }
+  }
+
+  if (liveCitation?.sourceId && liveSource) {
+    const confirmationLabel =
+      liveSource.confirmationState === "user_confirmed"
+        ? "Verified by user"
+        : liveSource.confirmationState === "disputed"
+          ? "Anomaly flagged"
+          : liveSource.confirmationState === "needs_source"
+            ? "Needs source"
+            : liveSource.confirmationState === "ai_suggested"
+              ? "AI suggested"
+              : "Unverified"
+    return (
+      <aside
+        ref={workbenchRef}
+        className={`workbench ${modal ? "workbench--sheet" : ""}`}
+        aria-labelledby="live-workbench-title"
+        role={modal ? "dialog" : "complementary"}
+        aria-modal={modal ? true : undefined}
+      >
+        <header className="workbench__header">
+          {modal && <IconButton label="Back to conversation" icon={ArrowLeft} onClick={onClose} />}
+          <div><span className="overline">Live source viewer</span></div>
+          <IconButton label="Close source" icon={X} onClick={onClose} />
+        </header>
+        <h2 id="live-workbench-title" className="workbench__title">{liveSource.title}</h2>
+        <p className="workbench__sub">
+          {liveCitation.sourceId.slice(0, 8)} · {liveCitation.pageNumber ? `Page ${liveCitation.pageNumber}` : "Page unknown"}
+        </p>
+        <div className="workbench__scroll">
+          <div className="paper" role="group" aria-label="Retrieved source text">
+            <mark>{liveExcerpt || "Loading the retrieved source text…"}</mark>
+          </div>
+          <p className="workbench__note">
+            <Info size={20} aria-hidden="true" />
+            <span>Status: <strong>{confirmationLabel}</strong>. AI text requires human verification.</span>
+          </p>
+          <div className="verification-actions" aria-label="Human verification">
+            <Button
+              variant="primary"
+              icon={Check}
+              disabled={verificationBusy}
+              onClick={() => verifyLiveSource("user_confirmed")}
+            >
+              Verify extraction
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={verificationBusy}
+              onClick={() => verifyLiveSource("disputed")}
+            >
+              Flag anomaly
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={verificationBusy}
+              onClick={() => verifyLiveSource("needs_source")}
+            >
+              Contest record
+            </Button>
+          </div>
+          {verificationMessage && <p role="status" className="muted">{verificationMessage}</p>}
+        </div>
+      </aside>
+    )
+  }
+
   if (!passage || !document || document.caseId !== state.activeCaseId)
     return null
 

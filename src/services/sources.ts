@@ -50,7 +50,7 @@ export type UploadOriginalResult = {
     preserved: true
   }
   processing: {
-    status: "not_requested"
+    status: "queued"
     message: string
   }
 }
