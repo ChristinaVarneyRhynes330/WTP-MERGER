@@ -792,10 +792,6 @@ textarea { padding: 11px 12px; resize: vertical; }
 
 /* --- IMPORTED FROM BASE44 SHADCN UI --- */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
   :root {
     --background: 180 3% 8%;
