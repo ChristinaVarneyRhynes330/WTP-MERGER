@@ -8,6 +8,8 @@ const handoffSql = read("../supabase/migrations/20261119120000_counsel_handoff_5
 const edge = read("../supabase/functions/make-server-82d9c8b6/index.ts");
 const triage = read("../supabase/functions/triage-counsel-handoff/index.ts");
 const app = read("../src/App.tsx");
+const triageConfig = read("../supabase/config.toml");
+const counselService = read("../src/services/counselHandoff.ts");
 const views = read("../src/features/views.tsx");
 const contextBar = read("../src/components/layout/ContextBar.tsx");
 const lib = read("../src/lib/supabase.ts");
@@ -50,6 +52,13 @@ test("counsel handoff route and triage require authentication", () => {
   assert.match(triage, /Authentication required/);
   assert.match(triage, /is_matter_member/);
   assert.match(triage, /unverified/i);
+  assert.match(triage, /responseSchema/);
+  assert.match(triage, /GEMINI_MODEL/);
+  assert.match(triage, /matter_id/);
+  assert.match(triage, /handoff_file_id/);
+  assert.match(triageConfig, /\[functions\.triage-counsel-handoff\][\s\S]*verify_jwt\s*=\s*true/);
+  assert.match(counselService, /matter_id/);
+  assert.match(counselService, /handoff_file_id/);
 });
 
 test("private workspace routes require session and selected matter", () => {

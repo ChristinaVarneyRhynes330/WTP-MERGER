@@ -2,8 +2,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2.49.8"
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN")?.trim() || "*"
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 }
@@ -25,9 +26,9 @@ function bearerToken(header: string | null) {
   return header?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null
 }
 
-async function generateSuggestion(apiKey: string, prompt: string) {
+async function generateSuggestion(apiKey: string, model: string, prompt: string) {
   const result = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,10 +36,40 @@ async function generateSuggestion(apiKey: string, prompt: string) {
         systemInstruction: {
           parts: [{
             text:
-              "You triage evidence preservation metadata only. Never invent court facts, filing events, admission events, dates, or record contents. If the supplied metadata does not establish a pathway, return null or unverified. Your output is an unverified suggestion requiring explicit human or counsel acceptance.",
+              "You triage appellate evidence metadata only. Never invent docket numbers, filing dates, transcript citations, court rulings, or record contents. Possession in Drive does not prove filing, proffer, admission, or inclusion in the transmitted ROA. Rule 9.200(f) cannot add evidence never presented below. Every output is an unverified suggestion requiring explicit counsel acceptance.",
           }],
         },
-        generationConfig: { temperature: 0, responseMimeType: "application/json" },
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              suggested_pathway_rule: {
+                type: "STRING",
+                enum: ["Rule 9.200(f)", "Proffer / Record", "Unverified Source"],
+              },
+              suggested_priority: {
+                type: "STRING",
+                enum: ["Urgent / Critical", "High", "Standard", "Low"],
+              },
+              suggested_preservation_flag: { type: "BOOLEAN" },
+              flag_reason: { type: "STRING" },
+              recommended_next_step: { type: "STRING" },
+              rationale: { type: "STRING" },
+              rule_9200_limitation_note: { type: "STRING" },
+            },
+            required: [
+              "suggested_pathway_rule",
+              "suggested_priority",
+              "suggested_preservation_flag",
+              "flag_reason",
+              "recommended_next_step",
+              "rationale",
+              "rule_9200_limitation_note",
+            ],
+          },
+        },
         contents: [{ role: "user", parts: [{ text: prompt }] }],
       }),
     },
@@ -62,14 +93,24 @@ Deno.serve(async (request) => {
   const token = bearerToken(request.headers.get("Authorization"))
   if (!token) return response({ error: "Authentication required" }, 401)
 
-  let body: { matterId?: unknown; handoffFileId?: unknown }
+  let body: { matterId?: unknown; handoffFileId?: unknown; matter_id?: unknown; handoff_file_id?: unknown }
   try {
     body = await request.json()
   } catch {
     return response({ error: "A JSON request is required" }, 400)
   }
-  const matterId = typeof body.matterId === "string" ? body.matterId : ""
-  const handoffFileId = typeof body.handoffFileId === "string" ? body.handoffFileId : ""
+  const matterId =
+    typeof body.matterId === "string"
+      ? body.matterId
+      : typeof body.matter_id === "string"
+        ? body.matter_id
+        : ""
+  const handoffFileId =
+    typeof body.handoffFileId === "string"
+      ? body.handoffFileId
+      : typeof body.handoff_file_id === "string"
+        ? body.handoff_file_id
+        : ""
   if (!UUID_PATTERN.test(matterId) || !UUID_PATTERN.test(handoffFileId)) {
     return response({ error: "A valid matter and handoff file are required" }, 400)
   }
@@ -90,7 +131,7 @@ Deno.serve(async (request) => {
 
     const { data: file, error: fileError } = await client
       .from("handoff_files")
-      .select("id,matter_id,full_tree_path,file_name,mime_type,priority,preservation_flag")
+      .select("id,matter_id,full_tree_path,file_name,mime_type,last_updated,review_status,priority,assigned_to,notes,preservation_flag")
       .eq("id", handoffFileId)
       .eq("matter_id", matterId)
       .single()
@@ -125,31 +166,65 @@ admission_status: ${pathway?.admission_status ?? "unverified"}
 transmitted_roa_status: ${pathway?.transmitted_roa_status ?? "unverified"}
 pathway_rule: ${pathway?.pathway_rule ?? "none"}
 
-Return JSON only:
-{
-  "pathway_rule": "Rule 9.200(f), another explicitly supplied rule, or null",
-  "priority": "low | normal | high | urgent",
-  "preservation_flag": true,
-  "rationale": "metadata-only explanation; explicitly state what remains unverified"
-}`
+Return only structured JSON matching the configured response schema.`
 
-    const parsed = JSON.parse(await generateSuggestion(env("GEMINI_API_KEY"), prompt)) as {
-      pathway_rule?: unknown
-      priority?: unknown
-      preservation_flag?: unknown
+    const model = Deno.env.get("GEMINI_MODEL")?.trim() || "gemini-2.5-flash"
+    const parsed = JSON.parse(await generateSuggestion(env("GEMINI_API_KEY"), model, prompt)) as {
+      suggested_pathway_rule?: unknown
+      suggested_priority?: unknown
+      suggested_preservation_flag?: unknown
+      flag_reason?: unknown
+      recommended_next_step?: unknown
       rationale?: unknown
+      rule_9200_limitation_note?: unknown
     }
-    const priorities = ["low", "normal", "high", "urgent"] as const
-    const priority = priorities.includes(parsed.priority as typeof priorities[number])
-      ? parsed.priority as typeof priorities[number]
-      : "normal"
+    const priorityMap: Record<string, "low" | "normal" | "high" | "urgent"> = {
+      "Urgent / Critical": "urgent",
+      High: "high",
+      Standard: "normal",
+      Low: "low",
+    }
+    const suggestedPriority =
+      typeof parsed.suggested_priority === "string"
+        ? priorityMap[parsed.suggested_priority] ?? "normal"
+        : "normal"
+    const suggestion = {
+      suggested_pathway_rule:
+        typeof parsed.suggested_pathway_rule === "string"
+          ? parsed.suggested_pathway_rule
+          : "Unverified Source",
+      suggested_priority:
+        typeof parsed.suggested_priority === "string"
+          ? parsed.suggested_priority
+          : "Standard",
+      suggested_preservation_flag: parsed.suggested_preservation_flag === true,
+      flag_reason: typeof parsed.flag_reason === "string" ? parsed.flag_reason : "",
+      recommended_next_step:
+        typeof parsed.recommended_next_step === "string"
+          ? parsed.recommended_next_step
+          : "Verify the item against the lower-tribunal docket and transmitted ROA.",
+      rationale:
+        typeof parsed.rationale === "string"
+          ? parsed.rationale
+          : "No definitive pathway is established by the supplied metadata.",
+      rule_9200_limitation_note:
+        typeof parsed.rule_9200_limitation_note === "string"
+          ? parsed.rule_9200_limitation_note
+          : "Rule 9.200(f) cannot be used to insert brand-new evidence never presented below.",
+      is_unverified_suggestion: true,
+    }
     return response({
-      pathwayRule: typeof parsed.pathway_rule === "string" ? parsed.pathway_rule : null,
-      priority,
-      preservationFlag: parsed.preservation_flag === true,
-      rationale: typeof parsed.rationale === "string"
-        ? parsed.rationale
-        : "No definitive pathway is established by the supplied metadata.",
+      handoff_file_id: handoffFileId,
+      matter_id: matterId,
+      model,
+      suggestion,
+      pathwayRule:
+        suggestion.suggested_pathway_rule === "Unverified Source"
+          ? "Unverified Source"
+          : suggestion.suggested_pathway_rule,
+      priority: suggestedPriority,
+      preservationFlag: suggestion.suggested_preservation_flag,
+      rationale: suggestion.rationale,
       unverified: true,
     })
   } catch (error) {

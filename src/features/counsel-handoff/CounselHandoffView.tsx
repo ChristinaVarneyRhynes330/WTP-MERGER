@@ -383,6 +383,10 @@ function HandoffInspector({
     setPathwayRule(suggestion.pathwayRule ?? "")
     setMessage("Suggestion loaded into the review form. Save explicitly to accept it.")
   }
+  const dismissSuggestion = () => {
+    setSuggestion(null)
+    setMessage("Unverified AI suggestion dismissed.")
+  }
 
   return (
     <aside className="glass-card handoff-inspector" aria-label="Record inspector">
@@ -436,8 +440,14 @@ function HandoffInspector({
             <div><dt>Pathway</dt><dd>{suggestion.pathwayRule || "Unverified archive item"}</dd></div>
             <div><dt>Priority</dt><dd>{suggestion.priority}</dd></div>
             <div><dt>Preservation</dt><dd>{suggestion.preservationFlag ? "Flagged" : "Not flagged"}</dd></div>
+            {suggestion.flagReason && <div><dt>Flag reason</dt><dd>{suggestion.flagReason}</dd></div>}
+            {suggestion.recommendedNextStep && <div><dt>Next step</dt><dd>{suggestion.recommendedNextStep}</dd></div>}
+            {suggestion.rule9200LimitationNote && <div><dt>Rule 9.200(f) limitation</dt><dd>{suggestion.rule9200LimitationNote}</dd></div>}
           </dl>
-          <Button variant="ghost" onClick={acceptSuggestion}>Load suggestion for explicit acceptance</Button>
+          <div className="handoff-inspector__actions">
+            <Button variant="primary" onClick={acceptSuggestion}>Accept suggestion</Button>
+            <Button variant="ghost" onClick={dismissSuggestion}>Dismiss</Button>
+          </div>
         </ReadingSurface>
       )}
       {message && <p className="muted" role="status">{message}</p>}

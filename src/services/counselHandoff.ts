@@ -26,6 +26,11 @@ export type CounselTriageSuggestion = {
   preservationFlag: boolean
   rationale: string
   unverified: true
+  suggestedPathwayRule?: string
+  suggestedPriority?: string
+  flagReason?: string
+  recommendedNextStep?: string
+  rule9200LimitationNote?: string
 }
 
 export async function updateHandoffReview(input: {
@@ -82,10 +87,77 @@ export async function triageHandoffFile(
 ): Promise<CounselTriageSuggestion> {
   const { data, error } = await supabase.functions.invoke(
     "triage-counsel-handoff",
-    { body: { matterId, handoffFileId: fileId } },
+    { body: { matter_id: matterId, handoff_file_id: fileId } },
   )
   if (error) throw error
-  return data as CounselTriageSuggestion
+  const payload = data as {
+    suggestion?: {
+      suggested_pathway_rule?: unknown
+      suggested_priority?: unknown
+      suggested_preservation_flag?: unknown
+      flag_reason?: unknown
+      recommended_next_step?: unknown
+      rationale?: unknown
+      rule_9200_limitation_note?: unknown
+      is_unverified_suggestion?: unknown
+    }
+    pathwayRule?: unknown
+    priority?: unknown
+    preservationFlag?: unknown
+    rationale?: unknown
+  }
+  const suggestion = payload.suggestion
+  const pathwayRule =
+    typeof payload.pathwayRule === "string"
+      ? payload.pathwayRule
+      : typeof suggestion?.suggested_pathway_rule === "string"
+        ? suggestion.suggested_pathway_rule
+        : "Unverified Source"
+  const priorityMap: Record<string, HandoffFile["priority"]> = {
+    urgent: "urgent",
+    high: "high",
+    normal: "normal",
+    low: "low",
+  }
+  const priority =
+    typeof payload.priority === "string"
+      ? priorityMap[payload.priority] ?? "normal"
+      : "normal"
+  return {
+    pathwayRule,
+    priority,
+    preservationFlag:
+      typeof payload.preservationFlag === "boolean"
+        ? payload.preservationFlag
+        : suggestion?.suggested_preservation_flag === true,
+    rationale:
+      typeof payload.rationale === "string"
+        ? payload.rationale
+        : typeof suggestion?.rationale === "string"
+          ? suggestion.rationale
+          : "No definitive pathway is established by the supplied metadata.",
+    unverified: true,
+    suggestedPathwayRule:
+      typeof suggestion?.suggested_pathway_rule === "string"
+        ? suggestion.suggested_pathway_rule
+        : undefined,
+    suggestedPriority:
+      typeof suggestion?.suggested_priority === "string"
+        ? suggestion.suggested_priority
+        : undefined,
+    flagReason:
+      typeof suggestion?.flag_reason === "string"
+        ? suggestion.flag_reason
+        : undefined,
+    recommendedNextStep:
+      typeof suggestion?.recommended_next_step === "string"
+        ? suggestion.recommended_next_step
+        : undefined,
+    rule9200LimitationNote:
+      typeof suggestion?.rule_9200_limitation_note === "string"
+        ? suggestion.rule_9200_limitation_note
+        : undefined,
+  }
 }
 
 export async function loadCounselHandoff(): Promise<CounselHandoffData> {
