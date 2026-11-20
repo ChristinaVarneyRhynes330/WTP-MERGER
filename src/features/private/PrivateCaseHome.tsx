@@ -8,7 +8,6 @@ import type { Matter } from "../../types/database"
 
 // This screen reads only the selected, authorized matter. It deliberately does
 // not mount AppProvider: that provider contains browser-local fictional demo data.
-const COUNSEL_HANDOFF_MATTER_ID = "7a654510-9030-46d0-8628-14106db4e5a2"
 
 export function PrivateCaseHome() {
   const matterId = getActiveMatterId()
@@ -57,7 +56,6 @@ export function PrivateCaseHome() {
 
   const selected = sources.find((source) => source.id === selectedSourceId) ?? null
   const firstOriginal = selected?.source_files[0]
-  const handoffAvailable = matter?.id === COUNSEL_HANDOFF_MATTER_ID
 
   return (
     <div className="private-home">
@@ -75,11 +73,6 @@ export function PrivateCaseHome() {
           </div>
           <a className="private-home__nav-link is-active" href="#/app">Case Overview</a>
           <a className="private-home__nav-link" href="#/signin">Manage matters & originals</a>
-          {handoffAvailable && (
-            <a className="private-home__nav-link" href="#/counsel-handoff/5D2026-2915">
-              Counsel Handoff <ArrowRight size={15} aria-hidden="true" />
-            </a>
-          )}
           <div className="private-home__rail-bottom">
             <LockKeyhole size={16} aria-hidden="true" />
             Private, matter-authorized records
