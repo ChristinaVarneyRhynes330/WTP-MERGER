@@ -58,14 +58,16 @@ export function ContextBar({
           rememberModalTrigger(event.currentTarget)
           onSource()
         }}
-        disabled={!state.selectedPassageId}
+        disabled={state.view !== "learning" && !state.selectedPassageId}
         title={
-          state.selectedPassageId
-            ? "Open selected source"
-            : "Select a citation to open its source"
+          state.view === "learning"
+            ? "Open lesson context"
+            : state.selectedPassageId
+              ? "Open selected source"
+              : "Select a citation to open its source"
         }
       >
-        Source
+        {state.view === "learning" ? "Context" : "Source"}
       </Button>
     </header>
   )
