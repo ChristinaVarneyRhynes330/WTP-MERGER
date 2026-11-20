@@ -32,7 +32,7 @@ test("source panel stays in Evidence and is explicit about unverified demo text"
   assert.match(hub, /id="evidence-hub-inspector"/)
   assert.match(hub, /aria-label="Selected source and connected work"/)
   assert.match(hub, /"source", "connections", "actions"/)
-  assert.match(hub, /Fictional sample passage, not a retrieved/)
+  assert.match(hub, /fictional sample passage, not a retrieved/i)
   assert.match(hub, /ILLUSTRATIVE PASSAGE/)
   assert.match(hub, /Record interpretation · not a finding/)
   assert.match(hub, /No source passage is associated with this local record/)
@@ -61,4 +61,11 @@ test("approved glass visuals remain scoped and mobile actions remain reachable",
   assert.match(hub, /scrollIntoView/)
   assert.match(hub, /prefers-reduced-motion: reduce/)
   assert.doesNotMatch(css, /(^|\n)\s*\.(site|pub|private-home|sidebar)\b/)
+})
+
+test("unsent note and event proposals do not silently attach to another record", () => {
+  assert.match(hub, /Never silently carry a pending human action to another source/)
+  assert.ok(hub.includes('setNoteDraft("")'))
+  assert.match(hub, /setEventFormOpen\(false\)/)
+  assert.match(hub, /\[selected\?\.id, selectedPassage\?\.id\]/)
 })
