@@ -1,0 +1,263 @@
+/*
+ * WE THE PARENT | Typography scale + layout calibration
+ * This file is intentionally loaded after all legacy styles.
+ * Preserve Newsreader, Figtree, founder-approved botanical artwork,
+ * champagne/rose-metallic materials and contextual glass architecture.
+ */
+:root {
+  --wtp-type-display: clamp(2.75rem, 4.9vw, 4.625rem);
+  --wtp-type-page: clamp(2.15rem, 3.3vw, 3.375rem);
+  --wtp-type-section: clamp(1.85rem, 2.65vw, 2.65rem);
+  --wtp-type-card: clamp(1.25rem, 1.65vw, 1.55rem);
+  --wtp-type-lede: clamp(1rem, 1.35vw, 1.2rem);
+  --wtp-type-body: 1rem;
+  --wtp-type-label: 0.875rem;
+}
+
+/* Public page scale: a composed editorial hero, not billboard typography. */
+.pub .phero {
+  min-height: min(750px, calc(100dvh - 72px));
+}
+.pub .phero__inner {
+  width: min(100%, 1200px);
+  padding-block: clamp(42px, 5vw, 74px);
+  padding-inline: clamp(24px, 5vw, 74px);
+}
+.pub .phero__strap {
+  margin-bottom: 14px;
+  font-size: clamp(11px, .95vw, 13px);
+  letter-spacing: .27em;
+}
+.pub .phero h1 {
+  max-width: 13.3ch;
+  font-family: var(--font-display);
+  font-size: var(--wtp-type-display);
+  line-height: 1.055;
+  letter-spacing: -.031em;
+  text-wrap: balance;
+}
+.pub .phero__lede {
+  max-width: 45ch;
+  margin-top: 21px;
+  font-size: var(--wtp-type-lede);
+  line-height: 1.58;
+}
+.pub .phero__actions { gap: 13px; margin-top: 25px; }
+.pub .phero__note { font-size: 14px; }
+.pub .topbar__brand { font-size: clamp(17px, 1.55vw, 21px); }
+.pub .topbar__nav > a:not(.pill):not(.cta) { font-size: 14px; }
+.pub .topbar .pill--sm { font-size: 13px; min-height: 41px; }
+.pub .topbar .cta--sm { font-size: 15px; min-height: 41px; }
+.pub .band { padding-block: clamp(55px, 6vw, 88px); }
+.pub .band h2, .pub .band__title {
+  font-family: var(--font-display);
+  font-size: var(--wtp-type-section);
+  line-height: 1.16;
+  text-wrap: balance;
+}
+.pub .phead h1 {
+  max-width: 21ch;
+  font-size: var(--wtp-type-page);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.pub .phead p { font-size: var(--wtp-type-lede); }
+.pub .prose p, .pub .lede, .pub .info p, .pub .info__bullets {
+  font-size: var(--wtp-type-body);
+  line-height: 1.75;
+}
+.pub .cards h3, .pub .tour__bubble h3, .pub .info h2, .pub .info__steps h2 {
+  font-size: var(--wtp-type-card);
+  line-height: 1.24;
+}
+.pub .cards p, .pub .notice p { font-size: 15px; line-height: 1.65; }
+.pub .info__list dt { font-size: 22px; }
+.pub .info__list dd { font-size: 16px; }
+.pub .faq summary { font-size: 21px; }
+.pub .pub-footer__brand strong { font-size: 20px; }
+
+/* Transition from website to workspace — consistent with public typography. */
+.site--signin .entrance__name { font-size: clamp(32px, 3.6vw, 50px); }
+.site--signin .entrance__title {
+  max-width: 20ch;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.13;
+}
+.site--signin .entrance__eyebrow { font-size: 13px; }
+.site--signin .entrance-card h2 { font-size: clamp(27px, 2.45vw, 38px); }
+.site--signin .entrance-card__sub { font-size: 15px; }
+.site--signin .entrance-card label { font-size: 14px; }
+.site--signin .entrance-card .button--primary {
+  min-height: 50px;
+  font-size: 17px;
+}
+.site--signin .entrance-card .auth-notice { font-size: 13px; }
+.site--signin .entrance-card .file-drop strong { font-size: 14px; }
+
+/* Private app: consistent navigation and information density, no giant headings. */
+.private-home__frame {
+  grid-template-columns: 206px minmax(0,1fr) 290px;
+  border-radius: 24px;
+}
+.private-home__rail { padding: 18px 14px; gap: 7px; }
+.private-home__brand { padding-bottom: 14px; }
+.private-home__brand .monogram { max-width: 56px; max-height: 56px; }
+.private-home__brand span { font-size: 17px; }
+.private-home__case-label { padding: 12px; }
+.private-home__nav-link { padding: 9px 11px; min-height: 40px; font-size: 12px; }
+.private-home__main { padding: clamp(20px, 2.15vw, 30px); }
+.private-home__heading { gap: 10px; margin-bottom: 21px; }
+.private-home__heading h1 {
+  font-size: clamp(27px, 2.45vw, 36px);
+  line-height: 1.16;
+}
+.private-home__heading p { font-size: 13px; line-height: 1.58; }
+.private-home__summary { gap: 9px; margin-bottom: 22px; }
+.private-home__summary .glass-card { padding: 14px; gap: 5px; }
+.private-home__summary strong { font-size: 21px; }
+.private-home__section-heading h2 { font-size: 24px; }
+.private-home__inspector { padding: 18px 15px; }
+.private-home__source-detail h2,
+.private-home__source-placeholder h2 { font-size: 21px; }
+
+/* Guided onboarding is a concise launcher, not a ten-card wall. */
+.private-first-record {
+  margin: 0 0 22px;
+  padding: clamp(14px, 1.75vw, 23px);
+  border-radius: 17px;
+}
+.private-first-record .private-home__section-heading { gap: 10px; margin-bottom: 12px; }
+.private-first-record .private-home__section-heading h2 { font-size: clamp(22px, 2vw, 28px); }
+.private-first-record .private-home__section-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.private-first-record__progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+}
+.private-first-record__progress-item {
+  display: flex;
+  min-width: 0;
+  gap: 9px;
+  padding: 11px 10px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 11px;
+  background: rgba(15,26,28,.42);
+  align-items: start;
+}
+.private-first-record__progress-item > span {
+  flex: 0 0 20px;
+  color: var(--color-metal-light);
+  font-size: 11px;
+  font-weight: 650;
+}
+.private-first-record__progress-item > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.private-first-record__progress-item strong {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+.private-first-record__progress-item small {
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.private-first-record__all-steps { margin-top: 10px; }
+.private-first-record__all-steps > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  min-height: 38px;
+  color: var(--color-metal-light);
+  font-size: 12px;
+  font-weight: 600;
+  list-style: none;
+}
+.private-first-record__all-steps > summary::-webkit-details-marker { display: none; }
+.private-first-record__all-steps > summary svg { transition: transform .15s ease; }
+.private-first-record__all-steps[open] > summary svg { transform: rotate(90deg); }
+.private-first-record__all-steps .private-first-record__steps { padding-top: 6px; }
+.private-first-record__actions { margin-top: 13px; }
+.private-first-record__intake summary { min-height: 43px; font-size: 12px; }
+.private-first-record__receipt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 13px;
+  padding: 14px;
+  border: 1px solid rgba(185,219,197,.6);
+  border-radius: 12px;
+  background: rgba(29,75,58,.42);
+  color: var(--color-text-primary);
+}
+.private-first-record__receipt > svg { color: #c9e6d2; flex: 0 0 auto; }
+.private-first-record__receipt strong { font-size: 14px; }
+.private-first-record__receipt p { margin: 5px 0; font-size: 12px; line-height: 1.5; }
+.private-first-record__receipt button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--color-metal-light);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+.private-first-record__receipt button:hover { text-decoration: underline; }
+.private-first-record__receipt button:focus-visible,
+.private-first-record__all-steps > summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.private-first-record__feedback--error { display: flex; align-items: flex-start; gap: 9px; }
+.private-first-record__feedback--error svg { flex: 0 0 auto; }
+
+/* Reduce type inflation from older broad .gold-glass selectors. */
+.sidebar .nav-row { font-size: 15px; }
+.sidebar .new-chat-row { font-size: 15px; }
+.sidebar .case-switcher select { font-size: 15px; }
+.context-bar__identity strong { font-size: clamp(19px, 1.85vw, 27px); }
+.workbench__header h2 { font-size: 24px; }
+.workbench__title { font-size: 26px; }
+.workbench__actions .pill { font-size: 14px; min-height: 43px; }
+.page-view .page-header h1 { font-size: clamp(27px, 2.6vw, 37px); }
+.page-view .section-heading h2 { font-size: 24px; }
+
+/* Breakpoints support laptop screens and font enlargement without horizontal clipping. */
+@media (max-width: 1280px) {
+  .private-home__frame { grid-template-columns: 190px minmax(0,1fr) 260px; }
+  .private-first-record__progress { grid-template-columns: 1fr; }
+}
+@media (max-width: 1023px) {
+  .private-home__frame { display: flex; flex-direction: column; }
+  .private-first-record__progress { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 760px) {
+  .pub .phero { min-height: min(700px, calc(100dvh - 72px)); }
+  .pub .phero__inner { padding: 56px 22px 40px; }
+  .pub .phero h1 { font-size: clamp(40px, 9vw, 58px); max-width: 13ch; }
+  .pub .phero__lede { font-size: 16px; }
+  .pub .phero__actions { margin-top: 20px; }
+  .pub .band h2, .pub .band__title { font-size: clamp(29px, 7vw, 39px); }
+  .pub .phead h1 { font-size: clamp(34px, 7vw, 45px); }
+  .site--signin .entrance__name { font-size: 32px; }
+  .site--signin .entrance__title { font-size: 29px; }
+  .private-first-record__progress { grid-template-columns: 1fr; }
+  .private-home__heading h1 { font-size: 29px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .private-first-record__all-steps > summary svg { transition: none; }
+}
