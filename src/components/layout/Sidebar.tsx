@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   CalendarDays,
   ChevronLeft,
   FileText,
@@ -26,6 +27,7 @@ const navItems: {
   { view: "chat", label: "Conversation", icon: MessageSquare },
   { view: "evidence", label: "Evidence", icon: FileText },
   { view: "timeline", label: "Timeline", icon: CalendarDays },
+  { view: "learning", label: "Learning Lab", icon: BookOpen },
   { view: "drafts", label: "Drafts", icon: PenLineIcon },
   { view: "hearing", label: "Hearing prep", icon: Gavel },
 ]
