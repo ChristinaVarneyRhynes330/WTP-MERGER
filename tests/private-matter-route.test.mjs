@@ -51,3 +51,16 @@ test("founder botanical champagne/rose visual tokens are scoped to private matte
   assert.match(style, /prefers-reduced-motion/)
   assert.match(style, /max-width:620px/)
 })
+
+test("private parent navigation carries the twelve reference destinations without fictional case operations", () => {
+  const labels = [
+    "Case Headquarters", "Evidence Library", "Review What We Found", "Source Viewer",
+    "Ask My Case", "Timeline", "Learn in Context", "Tasks & Follow-Up",
+    "Activity History", "MVP Acceptance Journey", "Designed for Later", "Share & Collaborate",
+  ]
+  for (const label of labels) assert.ok(matter.includes(`name: "${label}"`), `missing parent destination: ${label}`)
+  assert.match(matter, /not connected to this matter view/i)
+  assert.match(matter, /not a security certification/i)
+  assert.match(matter, /source_files\.length > 0/)
+  assert.match(style, /overflow-x: auto/)
+})
