@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import {
   Activity, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, CheckCircle2,
   ClipboardCheck, Clock3, Compass, Eye, FileCheck2, FileSearch, FolderLock,
@@ -76,13 +76,32 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
   const [askError, setAskError] = useState("")
   const [signedSource, setSignedSource] = useState<{ id: string; url: string } | null>(null)
   const [signError, setSignError] = useState("")
+  const sourceLoadVersion = useRef(0)
+  const answerVersion = useRef(0)
+  const linkVersion = useRef(0)
+
+  // Prevent a previous matter's in-flight response or signed link from surfacing
+  // after the selected matter changes. Backend RLS remains the access boundary.
+  useEffect(() => {
+    sourceLoadVersion.current += 1
+    answerVersion.current += 1
+    linkVersion.current += 1
+    setSignedSource(null)
+    setInsight(null)
+    setQuestion("")
+    setAskError("")
+    setSignError("")
+  }, [matterId])
 
   const loadSources = useCallback(async () => {
+    const version = ++sourceLoadVersion.current
     try {
       const items = await listSources(matterId)
+      if (version !== sourceLoadVersion.current) return
       setSources(items)
       setSourceError("")
     } catch (cause) {
+      if (version !== sourceLoadVersion.current) return
       setSourceError(cause instanceof Error ? cause.message : "The private source service is not available.")
     }
   }, [matterId])
@@ -124,32 +143,41 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
   const ask = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!question.trim() || asking) return
+    const version = ++answerVersion.current
     setAsking(true)
     setAskError("")
     setInsight(null)
     try {
-      setInsight(await askAssistant({ matterId, question: question.trim() }))
+      const nextInsight = await askAssistant({ matterId, question: question.trim() })
+      if (version === answerVersion.current) setInsight(nextInsight)
     } catch (cause) {
-      setAskError(cause instanceof Error ? cause.message : "Source-grounded analysis is not available.")
+      if (version === answerVersion.current) {
+        setAskError(cause instanceof Error ? cause.message : "Source-grounded analysis is not available.")
+      }
     } finally {
-      setAsking(false)
+      if (version === answerVersion.current) setAsking(false)
     }
   }
 
   const getOriginal = async (source: SourceSummary) => {
     const original = source.source_files[0]
     if (!original) return
+    const version = ++linkVersion.current
     setSignError("")
     setSignedSource(null)
     try {
       const { signedUrl } = await createOriginalSignedUrl(original.id)
-      setSignedSource({ id: original.id, url: signedUrl })
+      if (version === linkVersion.current) setSignedSource({ id: original.id, url: signedUrl })
     } catch (cause) {
-      setSignError(cause instanceof Error ? cause.message : "The private original could not be opened.")
+      if (version === linkVersion.current) {
+        setSignError(cause instanceof Error ? cause.message : "The private original could not be opened.")
+      }
     }
   }
 
-  if (loading) return <main className="wtp-private-gate" role="status">Verifying private matter membership…</main>
+  if (loading || (matter && matter.id !== matterId)) {
+    return <main className="wtp-private-gate" role="status">Verifying private matter membership…</main>
+  }
   if (error || !matter || !role) return (
     <main className="wtp-private-gate" role="alert">
       <LockKeyhole aria-hidden="true" />
