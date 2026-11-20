@@ -89,7 +89,9 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
     setSignedSource(null)
     setInsight(null)
     setQuestion("")
+    setAsking(false)
     setAskError("")
+    setSourceError("")
     setSignError("")
   }, [matterId])
 
