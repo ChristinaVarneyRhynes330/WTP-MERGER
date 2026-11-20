@@ -1,0 +1,284 @@
+/*
+ * WE THE PARENT — approved demo aesthetic across the authenticated shell.
+ *
+ * Preserve the public homepage top navigation and botanical hero. The
+ * private workspace inherits the demo's separate gold-rimmed panes, nuanced
+ * rose-champagne glass, refined typography and darker reading surfaces.
+ * Information architecture and backend permissions are unchanged.
+ */
+
+/* Give each of the three areas a real glass panel, as in the approved demo.
+   Do not draw a single heavy outline around the entire workspace. */
+.private-home {
+  background:
+    radial-gradient(ellipse 80% 70% at 15% 0%, rgba(182,120,114,.15), transparent 75%),
+    var(--page-bg);
+}
+.private-home__frame {
+  display: grid;
+  gap: clamp(10px, 1.2vw, 18px);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+  isolation: isolate;
+}
+.private-home__rail,
+.private-home__main,
+.private-home__inspector {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 27px;
+  isolation: isolate;
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  box-shadow: 0 24px 54px rgba(0,0,0,.32);
+}
+.private-home__rail::before,
+.private-home__main::before,
+.private-home__inspector::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 3px;
+  background: var(--rim-gradient);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 3;
+}
+.private-home__rail {
+  border-right: 0;
+  background: linear-gradient(160deg, rgba(224,194,174,.15), rgba(182,120,114,.035) 48%), rgba(15,26,28,.80);
+}
+.private-home__main {
+  background: linear-gradient(140deg, rgba(182,120,114,.08), rgba(224,194,174,.04) 47%, rgba(15,26,28,.37)), rgba(13,20,21,.67);
+  scrollbar-color: rgba(214,185,174,.4) transparent;
+}
+.private-home__inspector {
+  border-left: 0;
+  background: linear-gradient(150deg, rgba(224,194,174,.13), rgba(182,120,114,.025) 48%), rgba(15,26,28,.83);
+}
+.private-home__rail > *,
+.private-home__main > *,
+.private-home__inspector > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Demo-derived visual hierarchy: decorative serif for navigation and
+   section titles; compact UI sans for metadata, actions, and source text. */
+.private-home__brand {
+  gap: 5px;
+  padding-bottom: 16px;
+}
+.private-home__brand .monogram {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 9px rgba(0,0,0,.5));
+}
+.private-home__brand span {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.private-home__brand small {
+  color: #d6b9ae;
+  letter-spacing: .12em;
+}
+.private-home__case-label {
+  border-color: rgba(214,185,174,.32);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(224,194,174,.10), rgba(15,26,28,.44));
+}
+.private-home__nav-link {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #eadcc2;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: .012em;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.private-home__nav-link.is-active,
+.private-home__nav-link:hover {
+  border-color: rgba(214,185,174,.50);
+  background: linear-gradient(180deg, rgba(224,194,174,.24), rgba(182,120,114,.11));
+  color: #f7eddf;
+}
+.private-home__nav-link:focus-visible,
+.private-home__source-row:focus-visible,
+.private-home__verify-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.private-home__rail-bottom {
+  border-top-color: rgba(214,185,174,.32);
+  color: #d0bdb1;
+}
+
+/* The current page heading is retained, scaled down and given quiet room. */
+.private-home__heading {
+  border-bottom: 1px solid rgba(214,185,174,.19);
+  padding-bottom: clamp(12px, 1.5vw, 20px);
+}
+.private-home__heading h1 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -.025em;
+  font-size: clamp(26px, 2.45vw, 37px);
+  line-height: 1.13;
+}
+.private-home__heading p { max-width: 56ch; }
+.private-home__heading .button--primary {
+  padding: 9px 16px;
+  min-height: 43px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 650;
+  border-radius: 999px;
+}
+
+/* Preserve the demo's individually lit cards, while making them genuinely
+   subordinate to the active task. */
+.private-home__summary .glass-card {
+  border-radius: 16px;
+  --edge: 2px;
+  background: linear-gradient(145deg, rgba(224,194,174,.13), rgba(182,120,114,.045) 50%, rgba(15,26,28,.50));
+  box-shadow: inset 0 1px 0 rgba(255,240,221,.19), 0 9px 20px rgba(0,0,0,.14);
+}
+.private-home__summary .glass-card strong { color: #f6ecd8; }
+.private-home__summary .glass-card p { color: #d6b9ae; }
+.private-home__summary .overline { font-size: 10px; letter-spacing: .14em; }
+
+.private-first-record {
+  border-color: rgba(214,185,174,.37);
+  border-radius: 19px;
+  background: linear-gradient(155deg, rgba(224,194,174,.12), rgba(182,120,114,.035) 42%), rgba(13,20,21,.66);
+  box-shadow: inset 0 1px 0 rgba(255,240,221,.13), 0 8px 24px rgba(0,0,0,.14);
+}
+.private-first-record__progress-item,
+.private-first-record__intake,
+.private-first-record__review-link {
+  border-color: rgba(214,185,174,.29);
+  background: linear-gradient(150deg, rgba(224,194,174,.055), rgba(15,26,28,.38));
+}
+.private-first-record__progress-item.private-first-record__step--available {
+  border-color: rgba(214,185,174,.62);
+  background: rgba(182,120,114,.14);
+}
+.private-first-record__progress-item strong { color: #f6ecd8; }
+.private-first-record__progress-item small { color: #d6b9ae; }
+.private-first-record__intake summary,
+.private-first-record__all-steps summary {
+  color: #f2e9e3;
+}
+.private-first-record__intake input:not([type="checkbox"]) {
+  border-color: rgba(214,185,174,.50);
+  background: rgba(12,20,21,.82);
+}
+.private-first-record__intake input:focus-visible {
+  outline: 2px solid var(--color-focus);
+}
+.private-first-record__receipt {
+  border-color: rgba(168,201,180,.65);
+  background: linear-gradient(140deg, rgba(61,96,78,.38), rgba(15,26,28,.58));
+}
+.private-home__records {
+  min-width: 0;
+  padding-top: clamp(6px, 1vw, 14px);
+}
+.private-home__section-heading h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(21px, 1.8vw, 26px);
+}
+.private-home__source-row {
+  border-color: rgba(214,185,174,.26);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(224,194,174,.07), rgba(15,26,28,.44));
+}
+.private-home__source-row:hover,
+.private-home__source-row.is-selected {
+  border-color: rgba(214,185,174,.64);
+  background: linear-gradient(145deg, rgba(224,194,174,.17), rgba(182,120,114,.10));
+}
+.private-home__source-row strong { color: #f2e9e3; font-size: 13px; }
+.private-home__source-row small { color: #d6b9ae; font-size: 11px; }
+.private-home__inspector-header {
+  border-bottom-color: rgba(214,185,174,.32);
+  padding-bottom: 13px;
+}
+.private-home__inspector-header .overline { color: #d6b9ae; }
+.private-home__source-detail h2,
+.private-home__source-placeholder h2 {
+  font-family: var(--font-display);
+  color: #f6ecd8;
+  font-weight: 500;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+.private-home__source-detail dt {
+  color: #cdbcb2;
+  font-size: 12px;
+  font-weight: 700;
+}
+.private-home__source-detail dd {
+  color: #f2e9e3;
+  font-size: 13px;
+}
+.private-home__source-detail p,
+.private-home__source-placeholder p { font-size: 13px; color: #d6b9ae; }
+.private-home__verify-button {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(224,194,174,.22), rgba(182,120,114,.13));
+  border-color: rgba(214,185,174,.48);
+  color: #f2e9e3;
+}
+
+/* Keep the public website topbar intact: it is deliberately not restyled by
+   this private-only layer. Only the typography scaling file changes its sizing. */
+
+@media (max-width: 1023px) {
+  .private-home__frame {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 10px;
+    padding: 10px;
+  }
+  .private-home__rail,
+  .private-home__main,
+  .private-home__inspector {
+    flex: 0 0 auto;
+    border-radius: 22px;
+  }
+  .private-home__rail { flex-direction: row; flex-wrap: wrap; }
+  .private-home__main, .private-home__inspector { overflow: visible; }
+}
+@media (max-width: 767px) {
+  .private-home__frame {
+    padding: 8px;
+    gap: 8px;
+    border-radius: 0;
+  }
+  .private-home__rail,
+  .private-home__main,
+  .private-home__inspector {
+    border-radius: 17px;
+  }
+  .private-home__brand { align-items: flex-start; }
+  .private-home__brand .monogram { width: 48px; height: 48px; }
+  .private-home__nav-link { font-size: 14px; min-height: 41px; }
+  .private-home__summary { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .private-home__nav-link { transition: none; }
+}
