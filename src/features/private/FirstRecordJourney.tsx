@@ -34,7 +34,7 @@ function journeySteps(
 ): Step[] {
   const saved = sources.find((source) => source.source_files.some((file) => Boolean(file.id)))
   const registeredOriginal = saved?.source_files.find((file) => Boolean(file.id)) ?? null
-  const verified = Boolean(registeredOriginal && registeredOriginal.id === verifiedOriginalId)
+  const verified = Boolean(verifiedOriginalId && sources.some((source) => source.source_files.some((file) => file.id === verifiedOriginalId)))
   const sourceState = saved?.confirmation_state ?? "unverified"
 
   return [
