@@ -43,6 +43,24 @@
   gap: clamp(32px, 5vw, 68px);
   padding: 10px 0;
 }
+.site--signin .entrance__back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+}
+.site--signin .entrance__back-home:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.site--signin .entrance__back-home .monogram {
+  width: 56px;
+  height: 56px;
+}
 .site--signin .entrance__name { font-size: clamp(40px, 4.5vw, 70px); }
 .site--signin .entrance__title {
   max-width: 17ch;
