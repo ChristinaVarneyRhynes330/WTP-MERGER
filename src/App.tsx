@@ -165,7 +165,7 @@ function Workspace({ privateMode = false }: { privateMode?: boolean }) {
                 return
               }
               setSourceSheetOpen(true)
-            }
+            }}
             privateMode={privateMode}
           />
           <CurrentView privateMode={privateMode} />
