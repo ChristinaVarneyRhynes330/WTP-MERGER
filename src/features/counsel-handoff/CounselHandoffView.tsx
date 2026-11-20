@@ -184,7 +184,7 @@ export function CounselHandoffView({ matterId }: { matterId: string }) {
     <main className="page-view counsel-handoff">
       <header className="page-header">
         <div>
-          <span className="overline">Counsel handoff · private module</span>
+          <span className="overline">Counsel / reviewer workspace · {data.role} access</span>
           <h1>{data.matter.name}</h1>
           <p>{data.matter.case_number ? `Case ${data.matter.case_number}` : "Case number not provided"} · {data.matter.active_proceeding || "Matter-specific counsel review"}</p>
         </div>
@@ -342,6 +342,7 @@ function HandoffInspector({
   }
 
   const save = async () => {
+    if (data.role === "viewer") return
     setBusy(true)
     setMessage("")
     try {
@@ -363,6 +364,7 @@ function HandoffInspector({
   }
 
   const triage = async () => {
+    if (data.role === "viewer") return
     setBusy(true)
     setMessage("")
     try {
@@ -403,11 +405,11 @@ function HandoffInspector({
       </dl>
       <label>
         Pathway rule
-        <input value={pathwayRule} onChange={(event) => setPathwayRule(event.target.value)} placeholder="Rule 9.200(f) or unverified" />
+        <input disabled={data.role === "viewer"} value={pathwayRule} onChange={(event) => setPathwayRule(event.target.value)} placeholder="Rule 9.200(f) or unverified" />
       </label>
       <label>
         Priority
-        <select value={priority} onChange={(event) => setPriority(event.target.value as HandoffFile["priority"])}>
+        <select disabled={data.role === "viewer"} value={priority} onChange={(event) => setPriority(event.target.value as HandoffFile["priority"])}>
           <option value="low">Low</option>
           <option value="normal">Normal</option>
           <option value="high">High</option>
@@ -415,18 +417,18 @@ function HandoffInspector({
         </select>
       </label>
       <label className="handoff-filter-check">
-        <input type="checkbox" checked={preservationFlag} onChange={(event) => setPreservationFlag(event.target.checked)} />
+        <input type="checkbox" disabled={data.role === "viewer"} checked={preservationFlag} onChange={(event) => setPreservationFlag(event.target.checked)} />
         Preservation Red Flag
       </label>
       <label>
         Counsel notes
-        <textarea rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Record a review note without changing the source scan." />
+        <textarea disabled={data.role === "viewer"} rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Record a review note without changing the source scan." />
       </label>
       <div className="handoff-inspector__actions">
-        <Button icon={Save} variant="primary" disabled={busy} onClick={() => void save()}>
+        <Button icon={Save} variant="primary" disabled={busy || data.role === "viewer"} onClick={() => void save()}>
           Save review
         </Button>
-        <Button icon={Sparkles} variant="secondary" disabled={busy} onClick={() => void triage()}>
+        <Button icon={Sparkles} variant="secondary" disabled={busy || data.role === "viewer"} onClick={() => void triage()}>
           Suggest triage
         </Button>
       </div>
@@ -443,7 +445,7 @@ function HandoffInspector({
             {suggestion.rule9200LimitationNote && <div><dt>Rule 9.200(f) limitation</dt><dd>{suggestion.rule9200LimitationNote}</dd></div>}
           </dl>
           <div className="handoff-inspector__actions">
-            <Button variant="primary" onClick={acceptSuggestion}>Accept suggestion</Button>
+            <Button variant="primary" disabled={data.role === "viewer"} onClick={acceptSuggestion}>Accept suggestion</Button>
             <Button variant="ghost" onClick={dismissSuggestion}>Dismiss</Button>
           </div>
         </ReadingSurface>
