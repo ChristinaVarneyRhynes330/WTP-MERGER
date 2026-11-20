@@ -14,3 +14,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 import './sprint1.css'
+import './layout-integration.css'

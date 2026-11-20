@@ -175,7 +175,7 @@ function Message({ message }: { message: MessageType }) {
   )
 }
 
-function Composer() {
+function Composer({ privateMode = false }: { privateMode?: boolean }) {
   const { state, dispatch } = useApp()
   const text = state.composerDrafts[state.activeConversationId] ?? ""
   const [attachments, setAttachments] = useState<Attachment[]>([])
@@ -212,7 +212,8 @@ function Composer() {
       body: value || `Attached ${attachments.length} local file(s) for review.`,
       createdAt: now,
     }
-    const matterId = getActiveMatterId()
+    // Fictional demo must never query the last private matter selected in this browser.
+    const matterId = privateMode ? getActiveMatterId() : null
 
     try {
       if (matterId) {
@@ -284,7 +285,9 @@ function Composer() {
         role: "assistant",
         body:
           error instanceof Error
-            ? `The AI request could not be completed: ${error.message}`
+            ? /failed to fetch|networkerror|fetch failed/i.test(error.message)
+              ? "The AI service could not be reached. No analysis was generated. Check your connection or staging configuration before retrying."
+              : `The AI request could not be completed: ${error.message}`
             : "The AI request could not be completed.",
         createdAt: now,
       }
@@ -382,7 +385,7 @@ function Composer() {
   )
 }
 
-export function ChatView() {
+export function ChatView({ privateMode = false }: { privateMode?: boolean }) {
   const { state, dispatch } = useApp()
   const conversation = state.conversations.find(
     (item) => item.id === state.activeConversationId,
@@ -445,7 +448,7 @@ export function ChatView() {
           )}
         </div>
       </div>
-      <Composer />
+      <Composer privateMode={privateMode} />
       <nav className="quick-actions" aria-label="Quick actions">
         <button className="pill" onClick={() => dispatch({ type: "navigate", view: "evidence" })}>
           <FilePlus2 size={24} aria-hidden="true" />

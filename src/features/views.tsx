@@ -31,6 +31,7 @@ import {
   signOut,
 } from "../services/auth"
 import { SiteFrame } from "./site/Site"
+import { Monogram } from "../components/brand"
 import { setLook, useLook } from "../lib/look"
 import { createMatter, listMatters } from "../services/matters"
 import { setActiveMatterId } from "../services/activeMatter"
@@ -1322,6 +1323,10 @@ export function SignInView() {
       <div className="entrance">
         <div className="entrance__copy">
           <div>
+            <a className="entrance__back-home" href="#/" aria-label="Return to WE THE PARENT website">
+              <Monogram size={64} />
+              <span>Return to website</span>
+            </a>
             <p className="entrance__eyebrow">Private case workspace</p>
             <p className="entrance__name">We The Parent</p>
             <hr className="entrance__rule" />
@@ -1372,7 +1377,6 @@ export function SignInView() {
                 onClick={() => {
                   setSelectedMatter(matter)
                   setActiveMatterId(matter.id)
-                  location.hash = "#/app"
                 }}
               >
                 {matter.name}
@@ -1380,6 +1384,9 @@ export function SignInView() {
             ))}
           {selectedMatter && (
             <>
+              <a className="button button--primary entrance-card__open" href="#/app">
+                Open Case Headquarters <ArrowRight size={18} aria-hidden="true" />
+              </a>
               <div className="divider">
                 <span>preserve a test original</span>
               </div>

@@ -7,6 +7,7 @@ import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
 import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
+import { PrivateCaseHome } from "./features/private/PrivateCaseHome"
 import {
   DesignReviewView,
   DraftsView,
@@ -44,7 +45,7 @@ const validViews: ViewId[] = [
   "signin",
 ]
 
-function CurrentView() {
+function CurrentView({ privateMode = false }: { privateMode?: boolean }) {
   const { state } = useApp()
   switch (state.view) {
     case "evidence":
@@ -62,7 +63,7 @@ function CurrentView() {
     case "signin":
       return <SignInView />
     default:
-      return <ChatView />
+      return <ChatView privateMode={privateMode} />
   }
 }
 
@@ -152,7 +153,7 @@ function Workspace({ privateMode = false }: { privateMode?: boolean }) {
             onSource={() => setSourceSheetOpen(true)}
             privateMode={privateMode}
           />
-          <CurrentView />
+          <CurrentView privateMode={privateMode} />
         </section>
         {sourceModalOpen && (
           <button
@@ -266,11 +267,7 @@ function PrivateWorkspaceRoute() {
   if (!getActiveMatterId()) {
     return <SignInView />
   }
-  return (
-    <AppProvider>
-      <Workspace privateMode />
-    </AppProvider>
-  )
+  return <PrivateCaseHome />
 }
 
 export default function App() {

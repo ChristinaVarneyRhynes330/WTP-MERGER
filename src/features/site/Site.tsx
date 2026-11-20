@@ -55,7 +55,7 @@ export function SiteFrame({
 }) {
   useLook()
   return (
-    <div className="site">
+    <div className={`site site--${route}`}>
       <BotanicalArt className="page-art" />
       <nav className="site-rail rim" aria-label="Website">
         <a className="site-rail__logo" href="#/" aria-label="We The Parent home">
