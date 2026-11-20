@@ -11,8 +11,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, EmptyState, ReadingSurface } from "../../components/ui"
 import {
-  COUNSEL_HANDOFF_CASE_NUMBER,
-  COUNSEL_HANDOFF_LOWER_TRIBUNAL,
   loadCounselHandoff,
   triageHandoffFile,
   updateHandoffReview,
@@ -111,7 +109,7 @@ function FolderTree({
   )
 }
 
-export function CounselHandoffView() {
+export function CounselHandoffView({ matterId }: { matterId: string }) {
   const [data, setData] = useState<CounselHandoffData | null>(null)
   const [selectedFileId, setSelectedFileId] = useState<string>()
   const [selectedPath, setSelectedPath] = useState("")
@@ -125,7 +123,7 @@ export function CounselHandoffView() {
     setLoading(true)
     setError(false)
     try {
-      const next = await loadCounselHandoff()
+      const next = await loadCounselHandoff(matterId)
       setData(next)
       setSelectedFileId((current) =>
         current && next.files.some((file) => file.id === current)
@@ -138,7 +136,7 @@ export function CounselHandoffView() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [matterId])
 
   useEffect(() => {
     void load()
@@ -187,8 +185,8 @@ export function CounselHandoffView() {
       <header className="page-header">
         <div>
           <span className="overline">Counsel handoff · private module</span>
-          <h1>Appeal {COUNSEL_HANDOFF_CASE_NUMBER}</h1>
-          <p>Lower Tribunal {COUNSEL_HANDOFF_LOWER_TRIBUNAL} · {data.matter.name}</p>
+          <h1>{data.matter.name}</h1>
+          <p>{data.matter.case_number ? `Case ${data.matter.case_number}` : "Case number not provided"} · {data.matter.active_proceeding || "Matter-specific counsel review"}</p>
         </div>
         <Button icon={RefreshCw} variant="secondary" onClick={() => void load()}>
           Refresh scan
