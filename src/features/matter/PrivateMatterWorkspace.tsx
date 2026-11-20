@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
-  ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, CheckCircle2,
-  FileCheck2, FileSearch, FolderLock, GraduationCap, LockKeyhole,
-  MessageSquareText, RefreshCw, Search, ShieldCheck, Sparkles,
+  Activity, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, CheckCircle2,
+  ClipboardCheck, Clock3, Compass, Eye, FileCheck2, FileSearch, FolderLock,
+  GraduationCap, ListChecks, ListTodo, LockKeyhole, MessageSquareText,
+  RefreshCw, Search, ShieldCheck, Sparkles,
 } from "lucide-react"
 import { BotanicalArt, Monogram } from "../../components/brand"
 import { askAssistant, type AiInsight } from "../../services/ai"
@@ -12,13 +13,52 @@ import { supabase } from "../../lib/supabase"
 import type { Matter, MatterRole } from "../../types/database"
 import "./private-matter.css"
 
-type Area = "headquarters" | "evidence" | "ask" | "collaboration"
+type Area =
+  | "headquarters" | "evidence" | "review" | "source" | "ask" | "timeline"
+  | "learning" | "tasks" | "history" | "acceptance" | "roadmap" | "collaboration"
+
 const areas: Array<{ id: Area; name: string; icon: typeof FolderLock }> = [
   { id: "headquarters", name: "Case Headquarters", icon: FolderLock },
   { id: "evidence", name: "Evidence Library", icon: FileSearch },
+  { id: "review", name: "Review What We Found", icon: ClipboardCheck },
+  { id: "source", name: "Source Viewer", icon: Eye },
   { id: "ask", name: "Ask My Case", icon: MessageSquareText },
+  { id: "timeline", name: "Timeline", icon: Clock3 },
+  { id: "learning", name: "Learn in Context", icon: GraduationCap },
+  { id: "tasks", name: "Tasks & Follow-Up", icon: ListTodo },
+  { id: "history", name: "Activity History", icon: Activity },
+  { id: "acceptance", name: "MVP Acceptance Journey", icon: ListChecks },
+  { id: "roadmap", name: "Designed for Later", icon: Compass },
   { id: "collaboration", name: "Share & Collaborate", icon: BriefcaseBusiness },
 ]
+
+const plannedSections: Partial<Record<Area, { heading: string; description: string; limitation: string }>> = {
+  timeline: {
+    heading: "Timeline",
+    description: "The intended experience links dated events back to specific source records, with unknown and disputed dates kept separate.",
+    limitation: "A private, source-linked timeline service is not connected to this matter view. The fictional demo is not your actual case history.",
+  },
+  learning: {
+    heading: "Learn in Context",
+    description: "Contextual education should explain a workflow alongside the records and questions that prompted it.",
+    limitation: "Private matter-aware lessons are not connected. The existing fictional demo is separate from authorized sources.",
+  },
+  tasks: {
+    heading: "Tasks & Follow-Up",
+    description: "Future tasks will carry a responsible person, date provenance and links to the documents or decisions that justify them.",
+    limitation: "No persistent private task or deadline service is connected. This screen does not set a reminder or court deadline.",
+  },
+  history: {
+    heading: "Activity History",
+    description: "The intended audit view distinguishes uploads, viewing, review actions and changes in authorized access.",
+    limitation: "A complete, immutable, actor-attributed private audit history has not been implemented or independently tested.",
+  },
+  roadmap: {
+    heading: "Designed for Later",
+    description: "A dedicated place to track advanced features without cluttering the everyday parent workflow.",
+    limitation: "Planned capabilities are not represented as existing, tested or available services.",
+  },
+}
 
 /** This route is never backed by AppProvider's fictional, browser-persisted demo matter. */
 export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
@@ -124,6 +164,20 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
       .toLowerCase().includes(search.trim().toLowerCase()))
   const canEdit = role === "owner" || role === "editor"
   const counselUrl = `#/app/matters/${encodeURIComponent(matterId)}/counsel`
+  const plannedSection = plannedSections[area]
+  const preservedSources = sources.filter((source) => source.source_files.length > 0)
+  const readinessSteps = [
+    { label: "Authenticate and select the matter", complete: true, detail: "Signed-in membership and matter access have been checked." },
+    { label: "Register evidence", complete: sources.length > 0, detail: "Registration is metadata, not proof of admissibility." },
+    { label: "Preserve an original", complete: preservedSources.length > 0, detail: "Saved file metadata is present; original-byte recheck is still separate." },
+    { label: "Inspect source metadata", complete: sources.length > 0, detail: "Open the Evidence Library for source dates, IDs and confirmation states." },
+    { label: "Review extracted findings", complete: false, detail: "The private review-and-correction workflow is not connected here." },
+    { label: "Confirm or dispute suggestions", complete: false, detail: "No AI extraction is silently accepted as verified evidence." },
+    { label: "Connect an event to its sources", complete: false, detail: "The private source-linked timeline is pending." },
+    { label: "Ask a matter-grounded question", complete: false, detail: "An AI endpoint is available, but a successful authorized response is not established by opening this screen." },
+    { label: "Prepare selective professional sharing", complete: false, detail: "Viewing the counsel area is not an invitation or a grant of access." },
+    { label: "Validate protection and revocation", complete: false, detail: "Independent multi-account authorization and revocation testing remain required." },
+  ]
 
   return (
     <div className="wtp-private-parent">
@@ -189,11 +243,13 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
                 </section>
               </div>
             </>}
-            {area === "evidence" && <>
+            {(area === "evidence" || area === "source") && <>
               <div className="wtp-private-heading">
                 <p className="wtp-private-eyebrow">SOURCE REGISTER · VERIFIED ACCESS</p>
-                <h1>Evidence Library</h1>
-                <p>Each item is scoped to this matter. Registration does not establish admissibility, court filing, or appellate record inclusion.</p>
+                <h1>{area === "source" ? "Source Viewer" : "Evidence Library"}</h1>
+                <p>{area === "source"
+                  ? "Request the authorized short-lived original without changing preserved bytes. A protected link does not confirm the contents or their legal status."
+                  : "Each item is scoped to this matter. Registration does not establish admissibility, court filing, or appellate record inclusion."}</p>
               </div>
               <div className="wtp-private-controls">
                 <label htmlFor="private-evidence-search">Search sources</label>
@@ -237,6 +293,52 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
                 <h3>Retrieved citations</h3>
                 <ul>{insight.citations.map((citation,i) => <li key={i}>{citation.label} · {citation.pageNumber ? `page ${citation.pageNumber}` : "Page unverified"} · {citation.excerpt}</li>)}</ul>
               </section>}
+            </>}
+            {area === "review" && <>
+              <div className="wtp-private-heading">
+                <p className="wtp-private-eyebrow">HUMAN REVIEW · SOURCE PROVENANCE</p>
+                <h1>Review What We Found</h1>
+                <p>Reviewing a source is different from confirming an AI-generated assertion. This view shows the available registration and confirmation statuses; it does not yet save corrections to extracted findings.</p>
+              </div>
+              <section className="wtp-private-card">
+                <h2 className="wtp-private-subheading">{sources.length} authorized source records</h2>
+                <p className="wtp-private-muted">{sources.filter((item) => item.confirmation_state !== "user_confirmed").length} records have not been user-confirmed. A user-confirmed status does not establish admissibility or verified source contents.</p>
+                {sourceError && <p className="wtp-private-alert" role="alert">{sourceError}</p>}
+                <div className="wtp-private-review-list">
+                  {sources.map((item) => <div key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span>{item.confirmation_state.replace(/_/g, " ")} · {item.source_files.length} registered original(s)</span>
+                  </div>)}
+                </div>
+                <button className="wtp-private-secondary" type="button" onClick={() => setArea("evidence")}>Inspect source register <ArrowRight size={15} aria-hidden="true"/></button>
+              </section>
+              <p className="wtp-private-muted">Extracted passages, correction history, reviewer decisions and claim-level verification still require protected backend workflows.</p>
+            </>}
+            {plannedSection && <>
+              <div className="wtp-private-heading">
+                <p className="wtp-private-eyebrow">PARENT WORKFLOW · NOT YET CONNECTED</p>
+                <h1>{plannedSection.heading}</h1>
+                <p>{plannedSection.description}</p>
+              </div>
+              <section className="wtp-private-card">
+                <h2 className="wtp-private-subheading">Implementation boundary</h2>
+                <p className="wtp-private-muted">{plannedSection.limitation}</p>
+                {area === "learning" && <a className="wtp-private-inline-link" href="#/demo">Open the separate fictional demonstration <ArrowRight size={15} aria-hidden="true"/></a>}
+              </section>
+            </>}
+            {area === "acceptance" && <>
+              <div className="wtp-private-heading">
+                <p className="wtp-private-eyebrow">READINESS TRACKER · NOT A SECURITY CERTIFICATION</p>
+                <h1>MVP Acceptance Journey</h1>
+                <p>Ten implementation checks help show what this private matter can currently do and what must still be tested. This is a development checklist, not a claim that the original mockup's entire ten-step interaction has been recreated.</p>
+              </div>
+              <ol className="wtp-private-readiness">
+                {readinessSteps.map((step, index) => <li className="wtp-private-card" key={step.label}>
+                  <span className="wtp-private-step">{String(index + 1).padStart(2, "0")}</span>
+                  <div><h2>{step.label}</h2><p>{step.detail}</p></div>
+                  <span className="wtp-private-step-state">{step.complete ? "Available to inspect" : "Not yet verified"}</span>
+                </li>)}
+              </ol>
             </>}
             {area === "collaboration" && <>
               <div className="wtp-private-heading">
