@@ -6,10 +6,6 @@ import type {
   Matter,
 } from "../types/database"
 
-export const COUNSEL_HANDOFF_CASE_NUMBER = "5D2026-2915"
-export const COUNSEL_HANDOFF_LOWER_TRIBUNAL =
-  "05-2024-DP-000587-XXDP-BC"
-
 export type CounselHandoffData = {
   matter: Matter
   files: Array<
@@ -160,7 +156,10 @@ export async function triageHandoffFile(
   }
 }
 
-export async function loadCounselHandoff(): Promise<CounselHandoffData> {
+export async function loadCounselHandoff(matterId: string): Promise<CounselHandoffData> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(matterId)) {
+    throw new Error("A valid authorized matter identifier is required.")
+  }
   const {
     data: { user },
     error: userError,
@@ -168,10 +167,15 @@ export async function loadCounselHandoff(): Promise<CounselHandoffData> {
   if (userError) throw userError
   if (!user) throw new Error("Authentication is required.")
 
+  const { data: member, error: memberError } = await supabase.rpc("is_matter_member", {
+    target_matter_id: matterId,
+  })
+  if (memberError || !member) throw new Error("You are not authorized to access this matter.")
+
   const { data: matter, error: matterError } = await supabase
     .from("matters")
     .select("*")
-    .eq("case_number", COUNSEL_HANDOFF_CASE_NUMBER)
+    .eq("id", matterId)
     .is("archived_at", null)
     .single()
   if (matterError) throw matterError
