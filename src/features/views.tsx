@@ -1317,6 +1317,19 @@ export function SignInView() {
         ? "Choose an existing matter or create a private matter workspace."
         : "Your session is encrypted in transit. Matter access is enforced by database policies."
 
+  useEffect(() => {
+    if (!uploadMessage) return
+    const frame = window.requestAnimationFrame(() => {
+      const receipt = document.getElementById("preservation-result")
+      receipt?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      })
+      receipt?.focus({ preventScroll: true })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [uploadMessage])
+
   const showNotice = authenticated || Boolean(error || sourceError)
   return (
     <SiteFrame route="signin">
@@ -1467,18 +1480,15 @@ export function SignInView() {
                 {uploadingOriginal ? "Preserving unchanged original…" : "Preserve original"}
               </Button>
               {uploadMessage && (
-                <div className="preview-note">
-                  <Check size={18} />
-                  <span>{uploadMessage}</span>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    onClick={() => {
-                      location.hash = "#/app"
-                    }}
-                  >
-                    Open workspace
-                  </Button>
+                <div id="preservation-result" className="preservation-receipt" role="status" tabIndex={-1}>
+                  <Check size={20} aria-hidden="true" />
+                  <div className="preservation-receipt__body">
+                    <strong>Source operation completed</strong>
+                    <p>{uploadMessage}</p>
+                    <a className="button button--primary" href="#/app">
+                      View it in Case Headquarters <ArrowRight size={16} aria-hidden="true" />
+                    </a>
+                  </div>
                 </div>
               )}
               <div className="divider">
