@@ -225,16 +225,8 @@
 .private-first-record__feedback--error { display: flex; align-items: flex-start; gap: 9px; }
 .private-first-record__feedback--error svg { flex: 0 0 auto; }
 
-/* Reduce type inflation from older broad .gold-glass selectors. */
-.sidebar .nav-row { font-size: 15px; }
-.sidebar .new-chat-row { font-size: 15px; }
-.sidebar .case-switcher select { font-size: 15px; }
-.context-bar__identity strong { font-size: clamp(19px, 1.85vw, 27px); }
-.workbench__header h2 { font-size: 24px; }
-.workbench__title { font-size: 26px; }
-.workbench__actions .pill { font-size: 14px; min-height: 43px; }
-.page-view .page-header h1 { font-size: clamp(27px, 2.6vw, 37px); }
-.page-view .section-heading h2 { font-size: 24px; }
+/* The fictional demo (sidebar, chat, source viewer, cards and their type)
+   remains the APPROVED visual reference. Do not restyle it in this layer. */
 
 /* Breakpoints support laptop screens and font enlargement without horizontal clipping. */
 @media (max-width: 1280px) {
