@@ -1372,7 +1372,6 @@ export function SignInView() {
                 onClick={() => {
                   setSelectedMatter(matter)
                   setActiveMatterId(matter.id)
-                  location.hash = "#/app"
                 }}
               >
                 {matter.name}
