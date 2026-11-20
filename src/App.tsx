@@ -154,7 +154,18 @@ function Workspace({ privateMode = false }: { privateMode?: boolean }) {
           <BotanicalArt className="panel-art" />
           <ContextBar
             onMenu={() => setSidebarOpen(true)}
-            onSource={() => setSourceSheetOpen(true)}
+            onSource={() => {
+              if (state.view === "learning") {
+                const inspector = document.getElementById("wtp-learning-inspector")
+                inspector?.scrollIntoView({
+                  behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+                  block: "start",
+                })
+                inspector?.focus({ preventScroll: true })
+                return
+              }
+              setSourceSheetOpen(true)
+            }
             privateMode={privateMode}
           />
           <CurrentView privateMode={privateMode} />
