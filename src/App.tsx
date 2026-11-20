@@ -7,6 +7,7 @@ import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
 import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
+import { PrivateCaseHome } from "./features/private/PrivateCaseHome"
 import {
   DesignReviewView,
   DraftsView,
@@ -266,11 +267,7 @@ function PrivateWorkspaceRoute() {
   if (!getActiveMatterId()) {
     return <SignInView />
   }
-  return (
-    <AppProvider>
-      <Workspace privateMode />
-    </AppProvider>
-  )
+  return <PrivateCaseHome />
 }
 
 export default function App() {
