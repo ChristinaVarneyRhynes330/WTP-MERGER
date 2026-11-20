@@ -5,6 +5,7 @@ import { Sidebar } from "./components/layout/Sidebar"
 import { BotanicalArt } from "./components/brand"
 import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
+import { LearningLab } from "./features/learning/LearningLab"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
 import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
 import { PrivateCaseHome } from "./features/private/PrivateCaseHome"
@@ -43,6 +44,7 @@ const validViews: ViewId[] = [
   "settings",
   "design-review",
   "signin",
+  "learning",
 ]
 
 function CurrentView({ privateMode = false }: { privateMode?: boolean }) {
@@ -60,6 +62,8 @@ function CurrentView({ privateMode = false }: { privateMode?: boolean }) {
       return <SettingsView />
     case "design-review":
       return <DesignReviewView />
+    case "learning":
+      return <LearningLab />
     case "signin":
       return <SignInView />
     default:
