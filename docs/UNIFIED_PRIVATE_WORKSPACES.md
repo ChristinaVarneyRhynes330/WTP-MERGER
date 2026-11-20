@@ -16,6 +16,12 @@
 
 Reference: `we_the_parent_interactive_workspace_mockup.html` supplied by the founder, not committed to this public repository. The new scoped `PrivateMatterWorkspace` uses existing BotanicalArt and Monogram components and founder palette: obsidian, champagne, antique cream, dusty rose, sage, and denim. It carries compact sidebar navigation, glass cards and gold buttons, with a reduced-motion/mobile responsive layout. Public and fictional demo visual styles remain untouched.
 
+### Parent mockup navigation parity — interim implementation
+
+The parent workspace now exposes twelve destinations using the supplied mockup's screen labels and an added `Share & Collaborate` destination: Case Headquarters; Evidence Library; Review What We Found; Source Viewer; Ask My Case; Timeline; Learn in Context; Tasks & Follow-Up; Activity History; MVP Acceptance Journey; Designed for Later; Share & Collaborate.
+
+Functional authorized data views currently include the parent summary, source register, protected-link source opening, registered-source confirmation status, and existing matter-scoped AI invocation. Other areas visibly explain their missing backend integration rather than simulating task completion, extraction verification, audit logging or deadline reminders. The ten-step acceptance view is an interim implementation-readiness tracker, **not a verbatim port of the founder's original ten-step evidence workflow**. Full interaction parity requires direct comparison against the original HTML, desktop and mobile screenshots, and user acceptance.
+
 ### Working behavior implemented in this tranche
 
 - After Supabase authentication, the selected matter ID from `getActiveMatterId()` is checked using the authenticated user's `matter_members` row and the database's RLS-guarded `getMatter`.
