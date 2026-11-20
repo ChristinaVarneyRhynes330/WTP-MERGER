@@ -7,6 +7,7 @@ import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
 import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
+import { PrivateMatterWorkspace } from "./features/matter/PrivateMatterWorkspace"
 import {
   DesignReviewView,
   DraftsView,
@@ -187,7 +188,7 @@ type Route =
   | "signin"
   | "app"
   | "demo"
-  | "counsel-handoff/5D2026-2915"
+  | "counsel"
 
 const siteRoutes: Route[] = [
   "platform",
@@ -199,12 +200,13 @@ const siteRoutes: Route[] = [
   "help",
   "signin",
   "app",
-  "counsel-handoff/5D2026-2915",
+
 ]
 
 function parseRoute(): Route {
   const path = location.hash.replace(/^#\/?/, "")
   if (!path) return "home"
+  if (/^app\/matters\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/counsel$/i.test(path)) return "counsel"
   if (siteRoutes.includes(path as Route)) return path as Route
   if (validViews.includes(path as ViewId)) return "demo"
   return "home"
@@ -235,7 +237,8 @@ function PrivateCounselHandoffRoute() {
 
   if (!ready) return null
   if (!session) return <SignInView />
-  return <CounselHandoffView />
+  const match = location.hash.match(/^#\/app\/matters\/([0-9a-f-]{36})\/counsel$/i)
+  return match ? <CounselHandoffView matterId={match[1]} /> : <SignInView />
 }
 
 function PrivateWorkspaceRoute() {
@@ -266,11 +269,7 @@ function PrivateWorkspaceRoute() {
   if (!getActiveMatterId()) {
     return <SignInView />
   }
-  return (
-    <AppProvider>
-      <Workspace privateMode />
-    </AppProvider>
-  )
+  return <PrivateMatterWorkspace matterId={getActiveMatterId()!} />
 }
 
 export default function App() {
@@ -314,7 +313,7 @@ export default function App() {
           <a href="#/">Return to public preview</a>
         </div>
       )
-    case "counsel-handoff/5D2026-2915":
+    case "counsel":
       return isSupabaseConfigured ? <PrivateCounselHandoffRoute /> : (
         <div className="wtp-setup-panel" role="status">
           <h1>Private handoff setup required</h1>
