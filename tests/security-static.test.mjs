@@ -13,6 +13,7 @@ const counselService = read("../src/services/counselHandoff.ts");
 const views = read("../src/features/views.tsx");
 const contextBar = read("../src/components/layout/ContextBar.tsx");
 const privateCaseHome = read("../src/features/private/PrivateCaseHome.tsx");
+const chatView = read("../src/features/chat/ChatView.tsx");
 const layoutIntegration = read("../src/layout-integration.css");
 const lib = read("../src/lib/supabase.ts");
 const demo = read("../src/data/demo.ts");
@@ -83,4 +84,12 @@ test("sign-in and conversation layout changes are scoped to approved screens", (
   assert.match(layoutIntegration, /\.chat-view \.quick-actions/);
   assert.match(layoutIntegration, /\.private-home__inspector/);
   assert.match(app, /FICTIONAL DESIGN DEMO/);
+});
+
+
+test("fictional chat cannot inherit the selected private matter", () => {
+  assert.match(app, /<Workspace \/>/);
+  assert.match(app, /<CurrentView privateMode=\{privateMode\} \/>/);
+  assert.match(chatView, /const matterId = privateMode \? getActiveMatterId\(\) : null/);
+  assert.match(chatView, /<Composer privateMode=\{privateMode\} \/>/);
 });
