@@ -1,9 +1,11 @@
-import { ArrowRight, FileText, FolderOpen, LockKeyhole, ShieldCheck } from "lucide-react"
+import { ArrowRight, FileText, FolderOpen, LockKeyhole, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { BotanicalArt, Monogram } from "../../components/brand"
 import { getActiveMatterId } from "../../services/activeMatter"
 import { getMatter } from "../../services/matters"
-import { listSources, type SourceSummary } from "../../services/sources"
+import { createOriginalSignedUrl, listSources, type SourceSummary } from "../../services/sources"
+import { verifyOriginalBytes } from "../../lib/integrity"
+import { FirstRecordJourney } from "./FirstRecordJourney"
 import type { Matter } from "../../types/database"
 
 // This screen reads only the selected, authorized matter. It deliberately does
@@ -17,12 +19,16 @@ export function PrivateCaseHome() {
   const [loading, setLoading] = useState(true)
   const [sourceError, setSourceError] = useState<string | null>(null)
   const [matterError, setMatterError] = useState<string | null>(null)
+  const [verifyingOriginalId, setVerifyingOriginalId] = useState<string | null>(null)
+  const [verification, setVerification] = useState<{ originalId: string; ok: boolean; message: string } | null>(null)
 
   useEffect(() => {
     let active = true
     setLoading(true)
     setMatterError(null)
     setSourceError(null)
+    setSelectedSourceId(null)
+    setVerification(null)
     if (!matterId) {
       setLoading(false)
       return
@@ -54,8 +60,75 @@ export function PrivateCaseHome() {
     }
   }, [matterId])
 
+  const inspectSource = (sourceId: string) => {
+    setSelectedSourceId(sourceId)
+    setVerification(null)
+    // On mobile, source context follows the main column rather than sitting beside it.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.requestAnimationFrame(() => {
+        const inspector = document.getElementById("private-source-viewer")
+        inspector?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        })
+        inspector?.focus({ preventScroll: true })
+      })
+    }
+  }
+
   const selected = sources.find((source) => source.id === selectedSourceId) ?? null
   const firstOriginal = selected?.source_files[0]
+
+  const onPreserved = async (sourceId: string) => {
+    if (!matterId) throw new Error("Choose a matter before uploading an original.")
+    try {
+      const next = await listSources(matterId)
+      setSources(next)
+      setSourceError(null)
+      setSelectedSourceId(sourceId)
+      setVerification(null)
+    } catch (error) {
+      setSourceError("The original was registered, but the source register could not be refreshed. Retry without re-uploading the file.")
+      throw error
+    }
+  }
+
+  const refreshSources = async () => {
+    if (!matterId) return
+    try {
+      const next = await listSources(matterId)
+      setSources(next)
+      setSourceError(null)
+    } catch {
+      setSourceError("The source register could not be loaded. Your preserved records were not changed.")
+    }
+  }
+
+  const verifySavedOriginal = async () => {
+    if (!firstOriginal || verifyingOriginalId) return
+    setVerification(null)
+    setVerifyingOriginalId(firstOriginal.id)
+    try {
+      const { signedUrl } = await createOriginalSignedUrl(firstOriginal.id)
+      const response = await fetch(signedUrl, { cache: "no-store" })
+      if (!response.ok) throw new Error("The preserved original could not be retrieved.")
+      const originalBytes = await response.arrayBuffer()
+      await verifyOriginalBytes(originalBytes, firstOriginal.byte_size, firstOriginal.sha256)
+      setVerification({
+        originalId: firstOriginal.id,
+        ok: true,
+        message: "Retrieved bytes match the recorded SHA-256 and file size in this session. This confirms integrity relative to the saved original, not the truth of the source.",
+      })
+    } catch (error) {
+      setVerification({
+        originalId: firstOriginal.id,
+        ok: false,
+        message: error instanceof Error ? error.message : "Original integrity verification could not be completed.",
+      })
+    } finally {
+      setVerifyingOriginalId(null)
+    }
+  }
 
   return (
     <div className="private-home">
@@ -117,13 +190,22 @@ export function PrivateCaseHome() {
                 </div>
               </div>
 
+              <FirstRecordJourney
+                matter={matter}
+                sources={sources}
+                sourceRegisterAvailable={!sourceError}
+                verifiedOriginalId={verification?.ok ? verification.originalId : null}
+                onPreserved={onPreserved}
+                onInspect={inspectSource}
+              />
+
               <section className="private-home__records" aria-labelledby="private-source-list">
                 <div className="private-home__section-heading">
                   <div>
                     <span className="overline">Evidence</span>
                     <h2 id="private-source-list">Source register</h2>
                   </div>
-                  <a className="button" href="#/signin">Preserve a test original</a>
+                  <button className="button" type="button" onClick={() => void refreshSources()}><RefreshCw size={15} aria-hidden="true" /> Refresh register</button>
                 </div>
                 {sourceError && <p className="private-home__feedback" role="alert">{sourceError}</p>}
                 {!sourceError && sources.length === 0 && (
@@ -140,7 +222,7 @@ export function PrivateCaseHome() {
                         key={source.id}
                         type="button"
                         className={`private-home__source-row ${selectedSourceId === source.id ? "is-selected" : ""}`}
-                        onClick={() => setSelectedSourceId(source.id)}
+                        onClick={() => inspectSource(source.id)}
                         aria-pressed={selectedSourceId === source.id}
                       >
                         <FileText size={18} aria-hidden="true" />
@@ -155,7 +237,7 @@ export function PrivateCaseHome() {
           )}
         </main>
 
-        <aside className="private-home__inspector" aria-label="Source context">
+        <aside id="private-source-viewer" tabIndex={-1} className="private-home__inspector" aria-label="Source context">
           <div className="private-home__inspector-header">
             <span className="overline">Source context</span>
             <ShieldCheck size={18} aria-hidden="true" />
@@ -166,10 +248,25 @@ export function PrivateCaseHome() {
               <dl>
                 <dt>Record status</dt><dd>{selected.confirmation_state.replace(/_/g, " ")}</dd>
                 <dt>Original file</dt><dd>{firstOriginal?.original_name ?? "No preserved original registered"}</dd>
-                <dt>Source date</dt><dd>{selected.source_date ?? "Not recorded"}</dd>
+                <dt>Date on source (not an inferred event date)</dt><dd>{selected.source_date ?? "Not recorded"}</dd>
+                <dt>Record received</dt><dd>{selected.received_at ?? "Not recorded"}</dd>
+                <dt>Added to register</dt><dd>{selected.created_at ? new Date(selected.created_at).toLocaleString() : "Not recorded"}</dd>
                 <dt>Original fingerprint</dt><dd className="private-home__hash">{firstOriginal?.sha256 ? `${firstOriginal.sha256.slice(0, 24)}…` : "Not available"}</dd>
               </dl>
-              <p>A checksum identifies the preserved file. It does not confirm the truth of its contents.</p>
+              <p>The saved checksum is metadata until the original bytes are retrieved and compared. It does not verify the truth of any statement.</p>
+              {firstOriginal ? (
+                <button className="button private-home__verify-button" type="button" disabled={Boolean(verifyingOriginalId)} onClick={() => void verifySavedOriginal()}>
+                  <ShieldCheck size={16} aria-hidden="true" />
+                  {verifyingOriginalId === firstOriginal.id ? "Checking saved original…" : "Verify retrieved original bytes"}
+                </button>
+              ) : <p className="private-home__feedback">No preserved original is registered for this source.</p>}
+              {verification && verification.originalId === firstOriginal?.id && (
+                <p className={`private-home__verification ${verification.ok ? "is-verified" : "is-error"}`} role={verification.ok ? "status" : "alert"}>
+                  {verification.ok ? <CheckCircle2 size={17} aria-hidden="true" /> : <AlertCircle size={17} aria-hidden="true" />}
+                  <span>{verification.message}</span>
+                </p>
+              )}
+              <p>Further extraction and factual review have not been confirmed by this screen.</p>
             </div>
           ) : (
             <div className="private-home__source-placeholder">
