@@ -64,3 +64,14 @@ test("private parent navigation carries the twelve reference destinations withou
   assert.match(matter, /source_files\.length > 0/)
   assert.match(style, /overflow-x: auto/)
 })
+
+test("private matter switch invalidates old source, answer and original-link responses", () => {
+  assert.match(matter, /sourceLoadVersion\.current \+= 1/)
+  assert.match(matter, /answerVersion\.current \+= 1/)
+  assert.match(matter, /linkVersion\.current \+= 1/)
+  assert.match(matter, /if \(version !== sourceLoadVersion\.current\) return/)
+  assert.match(matter, /version === answerVersion\.current/)
+  assert.match(matter, /version === linkVersion\.current/)
+  assert.match(matter, /matter\.id !== matterId/)
+  assert.match(matter, /setSignedSource\(null\)/)
+})
