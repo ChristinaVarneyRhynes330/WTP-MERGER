@@ -69,3 +69,12 @@ test("unsent note and event proposals do not silently attach to another record",
   assert.match(hub, /setEventFormOpen\(false\)/)
   assert.match(hub, /\[selected\?\.id, selectedPassage\?\.id\]/)
 })
+
+test("newly added local records display a visible receipt without claiming secure preservation", () => {
+  assert.match(hub, /const observedRecords = useRef/)
+  assert.match(hub, /caseRecords.find\(record => !previous.ids.includes\(record.id\)\)/)
+  assert.match(hub, /setSelectedId\(added.id\)/)
+  assert.match(hub, /File bytes remain in browser memory only, not preserved in secure storage/)
+  assert.match(hub, /wtp-evidence-hub__arrival" role="status"/)
+  assert.match(css, /\.wtp-evidence-hub__arrival/)
+})
