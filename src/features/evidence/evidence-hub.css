@@ -71,6 +71,21 @@
   outline: 2px solid #f0d6a5;
   outline-offset: 3px;
 }
+.wtp-evidence-hub__arrival {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 1550px;
+  margin: 0 auto 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(168,201,180,.6);
+  border-radius: 12px;
+  background: linear-gradient(145deg,rgba(54,91,72,.48),rgba(15,26,28,.7));
+  color: #f2e8d8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.wtp-evidence-hub__arrival svg { flex: 0 0 auto; margin-top: 2px; }
 .wtp-evidence-hub__stats {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
