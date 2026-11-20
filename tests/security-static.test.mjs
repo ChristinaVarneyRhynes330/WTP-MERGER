@@ -50,7 +50,7 @@ test("counsel handoff route and triage require authentication", () => {
   assert.match(app, /PrivateCounselHandoffRoute/);
   assert.match(app, /if \(!session\) return <SignInView \/>/);
   assert.match(triage, /Authentication required/);
-  assert.match(triage, /is_matter_member/);
+  assert.match(triage, /can_edit_matter/);
   assert.match(triage, /unverified/i);
   assert.match(triage, /responseSchema/);
   assert.match(triage, /GEMINI_MODEL/);
