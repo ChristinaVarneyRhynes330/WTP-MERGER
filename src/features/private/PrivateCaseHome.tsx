@@ -60,6 +60,22 @@ export function PrivateCaseHome() {
     }
   }, [matterId])
 
+  const inspectSource = (sourceId: string) => {
+    setSelectedSourceId(sourceId)
+    setVerification(null)
+    // On mobile, source context follows the main column rather than sitting beside it.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.requestAnimationFrame(() => {
+        const inspector = document.getElementById("private-source-viewer")
+        inspector?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        })
+        inspector?.focus({ preventScroll: true })
+      })
+    }
+  }
+
   const selected = sources.find((source) => source.id === selectedSourceId) ?? null
   const firstOriginal = selected?.source_files[0]
 
@@ -180,10 +196,7 @@ export function PrivateCaseHome() {
                 sourceRegisterAvailable={!sourceError}
                 verifiedOriginalId={verification?.ok ? verification.originalId : null}
                 onPreserved={onPreserved}
-                onInspect={(sourceId) => {
-                  setSelectedSourceId(sourceId)
-                  setVerification(null)
-                }}
+                onInspect={inspectSource}
               />
 
               <section className="private-home__records" aria-labelledby="private-source-list">
@@ -209,7 +222,7 @@ export function PrivateCaseHome() {
                         key={source.id}
                         type="button"
                         className={`private-home__source-row ${selectedSourceId === source.id ? "is-selected" : ""}`}
-                        onClick={() => { setSelectedSourceId(source.id); setVerification(null) }}
+                        onClick={() => inspectSource(source.id)}
                         aria-pressed={selectedSourceId === source.id}
                       >
                         <FileText size={18} aria-hidden="true" />
@@ -224,7 +237,7 @@ export function PrivateCaseHome() {
           )}
         </main>
 
-        <aside className="private-home__inspector" aria-label="Source context">
+        <aside id="private-source-viewer" tabIndex={-1} className="private-home__inspector" aria-label="Source context">
           <div className="private-home__inspector-header">
             <span className="overline">Source context</span>
             <ShieldCheck size={18} aria-hidden="true" />
