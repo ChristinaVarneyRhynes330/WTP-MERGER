@@ -101,6 +101,18 @@ export function EvidenceHub({
   )
   const caseEventCount = state.timeline.filter(item => item.caseId === state.activeCaseId).length
 
+  // Draft text and event proposals belong to the record/passage where they were
+  // written. Never silently carry a pending human action to another source.
+  useEffect(() => {
+    setNoteDraft("")
+    setEventFormOpen(false)
+    setEventTitle("")
+    setEventDate("")
+    setDateKind("disputed")
+    setFeedback("")
+    setTab("source")
+  }, [selected?.id, selectedPassage?.id])
+
   const inspect = (id: string) => {
     setSelectedId(id)
     setPassageId(null)
