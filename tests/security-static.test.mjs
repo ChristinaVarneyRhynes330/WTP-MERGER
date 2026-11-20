@@ -12,6 +12,8 @@ const triageConfig = read("../supabase/config.toml");
 const counselService = read("../src/services/counselHandoff.ts");
 const views = read("../src/features/views.tsx");
 const contextBar = read("../src/components/layout/ContextBar.tsx");
+const privateCaseHome = read("../src/features/private/PrivateCaseHome.tsx");
+const layoutIntegration = read("../src/layout-integration.css");
 const lib = read("../src/lib/supabase.ts");
 const demo = read("../src/data/demo.ts");
 
@@ -65,7 +67,20 @@ test("private workspace routes require session and selected matter", () => {
   assert.match(app, /function PrivateWorkspaceRoute/);
   assert.match(app, /if \(!session\) return <SignInView \/>/);
   assert.match(app, /if \(!getActiveMatterId\(\)\)/);
-  assert.match(app, /<Workspace privateMode \/>/);
+  assert.match(app, /return <PrivateCaseHome \/>/);
+  assert.doesNotMatch(app, /<Workspace privateMode \/>/);
+  assert.match(privateCaseHome, /getMatter\(matterId\)/);
+  assert.match(privateCaseHome, /listSources\(matterId\)/);
+  assert.doesNotMatch(privateCaseHome, /AppProvider|initialState|sampleQuestion/);
   assert.match(views, /location\.hash = "#\/app"/);
   assert.match(contextBar, /privateMode \? "Private workspace" : "Fictional demo"/);
+});
+
+
+test("sign-in and conversation layout changes are scoped to approved screens", () => {
+  assert.match(layoutIntegration, /\.site--signin \.site-main__content/);
+  assert.match(layoutIntegration, /overflow-y: auto/);
+  assert.match(layoutIntegration, /\.chat-view \.quick-actions/);
+  assert.match(layoutIntegration, /\.private-home__inspector/);
+  assert.match(app, /FICTIONAL DESIGN DEMO/);
 });
