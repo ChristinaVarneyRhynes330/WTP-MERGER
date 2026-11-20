@@ -22,6 +22,10 @@ test("public hero type is scaled down without replacing the current public heade
   assert.match(type, /\.pub \.phero__lede/);
   assert.match(type, /\.pub \.topbar__brand/);
   assert.doesNotMatch(visual, /\.pub \.topbar\s*\{/);
+  // The approved fictional demo remains visually unchanged by this typography pass.
+  assert.doesNotMatch(type, /\\.sidebar \\.nav-row\\s*\\{/);
+  assert.doesNotMatch(type, /\\.workbench__title\\s*\\{/);
+  assert.doesNotMatch(type, /\\.context-bar__identity strong\\s*\\{/);
 });
 
 test("private view inherits approved separate gold rim and glass surfaces", () => {
