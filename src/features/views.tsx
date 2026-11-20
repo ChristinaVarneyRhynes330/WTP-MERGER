@@ -1379,6 +1379,9 @@ export function SignInView() {
             ))}
           {selectedMatter && (
             <>
+              <a className="button button--primary entrance-card__open" href="#/app">
+                Open Case Headquarters <ArrowRight size={18} aria-hidden="true" />
+              </a>
               <div className="divider">
                 <span>preserve a test original</span>
               </div>
