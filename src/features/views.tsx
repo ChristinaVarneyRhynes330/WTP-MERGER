@@ -22,6 +22,7 @@ import {
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import type { Session } from "@supabase/supabase-js"
 import { LocalFileService } from "../services/localFiles"
+import { EvidenceHub } from "./evidence/EvidenceHub"
 import { verifyOriginalBytes } from "../lib/integrity"
 import {
   getSession,
@@ -82,108 +83,15 @@ function PageHeader({
 }
 
 export function EvidenceView() {
-  const { state, dispatch } = useApp()
-  const [query, setQuery] = useState("")
   const [addOpen, setAddOpen] = useState(false)
-  const [reselectDocument, setReselectDocument] =
-    useState<DocumentRecord | null>(null)
-  const documents = state.documents.filter(
-    (document) =>
-      document.caseId === state.activeCaseId &&
-      `${document.title} ${document.tags.join(" ")}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  )
-  const openDocument = (
-    document: DocumentRecord,
-    trigger: HTMLButtonElement,
-  ) => {
-    const passage = state.passages.find(
-      (item) => item.documentId === document.id,
-    )
-    if (passage) {
-      rememberModalTrigger(trigger)
-      dispatch({ type: "setSource", passageId: passage.id })
-      dispatch({ type: "navigate", view: "chat" })
-    } else if (document.isLocal) {
-      setReselectDocument(document)
-    }
-  }
+  const [reselectDocument, setReselectDocument] = useState<DocumentRecord | null>(null)
+
   return (
-    <main className="page-view">
-      <PageHeader
-        overline="Case records"
-        title="Evidence"
-        description="Find records, keep their original language visible, and trace work back to its source."
-        actions={
-          <Button
-            icon={Plus}
-            variant="primary"
-            onClick={() => setAddOpen(true)}
-          >
-            Add document
-          </Button>
-        }
+    <>
+      <EvidenceHub
+        onAdd={() => setAddOpen(true)}
+        onReselect={(document) => setReselectDocument(document)}
       />
-      <div className="toolbar">
-        <label className="search-field">
-          <Search size={18} />
-          <span className="sr-only">Search evidence</span>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search documents and tags"
-          />
-        </label>
-        <Button icon={Filter}>Filter</Button>
-      </div>
-      <div className="evidence-list">
-        <div className="list-header">
-          <span>Document</span>
-          <span>Type</span>
-          <span>Date</span>
-          <span>Status</span>
-          <span />
-        </div>
-        {documents.map((document) => (
-          <button
-            className="evidence-row"
-            key={document.id}
-            onClick={(event) => openDocument(document, event.currentTarget)}
-          >
-            <span className="document-cell">
-              <span className="file-icon">
-                <FileText size={20} />
-              </span>
-              <span>
-                <strong>{document.title}</strong>
-                <small>
-                  {document.id} · {document.receivedFrom}
-                </small>
-                <span className="tag-list">
-                  {document.tags.map((tag) => (
-                    <em key={tag}>{tag}</em>
-                  ))}
-                </span>
-              </span>
-            </span>
-            <span>{document.type}</span>
-            <span>{document.documentDate ?? "Unknown"}</span>
-            <span className="status-text">
-              {document.status === "Reselect file to preview" ? (
-                <FileQuestion size={15} />
-              ) : (
-                <Check size={15} />
-              )}
-              {LocalFileService.has(document.id) &&
-              document.status === "Reselect file to preview"
-                ? "Local file available"
-                : document.status}
-            </span>
-            <ChevronRight size={18} />
-          </button>
-        ))}
-      </div>
       {addOpen && <AddDocumentModal onClose={() => setAddOpen(false)} />}
       {reselectDocument && (
         <AddDocumentModal
@@ -191,7 +99,7 @@ export function EvidenceView() {
           onClose={() => setReselectDocument(null)}
         />
       )}
-    </main>
+    </>
   )
 }
 
