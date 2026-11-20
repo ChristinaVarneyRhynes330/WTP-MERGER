@@ -86,11 +86,12 @@ export function FirstRecordJourney({
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [outcome, setOutcome] = useState<string | null>(null)
+  const [preservedSourceId, setPreservedSourceId] = useState<string | null>(null)
   const [inputVersion, setInputVersion] = useState(0)
 
   // UI guard only: real authorization still lives in Supabase/RLS.
   // Keep fictional pilot artifacts out of existing real matter workspaces.
-  const fictionalMatter = /^(fictional|demo|test)(?:[\\s:_-]|$)/i.test(matter.name.trim())
+  const fictionalMatter = /^(?:fictional|demo|test)(?=[\s:_-]|$)/i.test(matter.name.trim())
   const steps = journeySteps(matter, sources, sourceRegisterAvailable, verifiedOriginalId)
   const hasRegisteredOriginal = sources.some((source) => source.source_files.some((original) => Boolean(original.id)))
   const firstSource = sources.find((source) => source.source_files.some((original) => Boolean(original.id)))
@@ -144,6 +145,7 @@ export function FirstRecordJourney({
       if (!result.original.preserved || !result.original.sha256) {
         throw new Error("The preservation service did not confirm a stored checksum.")
       }
+      setPreservedSourceId(result.source.id)
       setOutcome(
         `Server registered ${result.original.originalName} with a stored SHA-256 fingerprint. ` +
         "The retrieved bytes have not yet been rechecked. Extraction completion is not confirmed.",
@@ -157,6 +159,7 @@ export function FirstRecordJourney({
       // A successful server write is not undone if refreshing the list later fails.
       try {
         await onPreserved(result.source.id)
+        onInspect(result.source.id)
       } catch {
         setUploadError("The original was registered, but the list could not be refreshed. Reload the source register before continuing.")
       }
@@ -178,16 +181,43 @@ export function FirstRecordJourney({
         <span className="private-first-record__scope"><ShieldAlert size={15} aria-hidden="true" /> Fictional test files only</span>
       </div>
 
-      <ol className="private-first-record__steps" aria-label="Parent first-record journey">
-        {steps.map((step, index) => (
-          <li className={`private-first-record__step private-first-record__step--${step.status}`} key={step.label}>
-            <span className="private-first-record__index" aria-hidden="true">
-              {step.status === "recorded" ? <CheckCircle2 size={18} /> : step.status === "future" ? <CircleDashed size={18} /> : String(index + 1).padStart(2, "0")}
-            </span>
-            <span className="private-first-record__step-copy"><strong>{step.label}</strong><small>{step.detail}</small></span>
-          </li>
+      <div className="private-first-record__progress" aria-label="First-record progress">
+        {steps.slice(0, 3).map((step, index) => (
+          <div className={`private-first-record__progress-item private-first-record__step--${step.status}`} key={step.label}>
+            <span aria-hidden="true">{step.status === "recorded" ? <CheckCircle2 size={18} /> : String(index + 1).padStart(2, "0")}</span>
+            <div><strong>{step.label}</strong><small>{step.detail}</small></div>
+          </div>
         ))}
-      </ol>
+      </div>
+      <details className="private-first-record__all-steps">
+        <summary>View the complete 10-step journey <ArrowRight size={16} aria-hidden="true" /></summary>
+        <ol className="private-first-record__steps" aria-label="Parent first-record journey">
+          {steps.map((step, index) => (
+            <li className={`private-first-record__step private-first-record__step--${step.status}`} key={step.label}>
+              <span className="private-first-record__index" aria-hidden="true">
+                {step.status === "recorded" ? <CheckCircle2 size={18} /> : step.status === "future" ? <CircleDashed size={18} /> : String(index + 1).padStart(2, "0")}
+              </span>
+              <span className="private-first-record__step-copy"><strong>{step.label}</strong><small>{step.detail}</small></span>
+            </li>
+          ))}
+        </ol>
+      </details>
+
+      {outcome && (
+        <div className="private-first-record__receipt" role="status">
+          <CheckCircle2 size={22} aria-hidden="true" />
+          <div>
+            <strong>Original registered</strong>
+            <p>{outcome}</p>
+            {preservedSourceId && (
+              <button type="button" onClick={() => onInspect(preservedSourceId)}>
+                Inspect saved source <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      {uploadError && <div className="private-first-record__feedback private-first-record__feedback--error" role="alert"><ShieldAlert size={16} aria-hidden="true" /><span>{uploadError}</span></div>}
 
       <div className="private-first-record__actions">
         <details className="private-first-record__intake" open={!hasRegisteredOriginal}>
@@ -233,8 +263,6 @@ export function FirstRecordJourney({
           </button>
         )}
       </div>
-      {outcome && <p className="private-first-record__feedback" role="status">{outcome}</p>}
-      {uploadError && <p className="private-first-record__feedback private-first-record__feedback--error" role="alert">{uploadError}</p>}
     </section>
   )
 }
