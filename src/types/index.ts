@@ -1,5 +1,5 @@
 export type ThemeId = "champagne" | "rose" | "pearl"
-export type ViewId = "chat" | "evidence" | "timeline" | "drafts" | "hearing" | "settings" | "design-review" | "signin"
+export type ViewId = "chat" | "evidence" | "timeline" | "drafts" | "hearing" | "settings" | "design-review" | "signin" | "learning"
 
 export interface Case {
   id: string

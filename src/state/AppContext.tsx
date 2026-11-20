@@ -181,6 +181,7 @@ function loadState(): AppState {
       "settings",
       "design-review",
       "signin",
+      "learning",
     ].includes(hashView)
       ? hashView
       : "chat"
