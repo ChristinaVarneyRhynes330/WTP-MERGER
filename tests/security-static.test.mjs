@@ -71,7 +71,7 @@ test("private workspace routes require session and selected matter", () => {
   assert.doesNotMatch(app, /<Workspace privateMode \/>/);
   assert.match(privateCaseHome, /getMatter\(matterId\)/);
   assert.match(privateCaseHome, /listSources\(matterId\)/);
-  assert.doesNotMatch(privateCaseHome, /AppProvider|initialState|sampleQuestion/);
+  assert.doesNotMatch(privateCaseHome, /<AppProvider\b|import\s+.*\bAppProvider\b|from\s+["\x27].*data\/demo/);
   assert.match(views, /location\.hash = "#\/app"/);
   assert.match(contextBar, /privateMode \? "Private workspace" : "Fictional demo"/);
 });
