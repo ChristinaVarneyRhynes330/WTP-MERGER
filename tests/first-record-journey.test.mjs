@@ -47,3 +47,18 @@ test("missing processing and private modules are not presented as completed", ()
   assert.match(uiCss, /\.private-first-record__steps/);
   assert.match(uiCss, /max-width: 700px/);
 });
+
+test("fictional test files cannot be mixed into ordinary matter workspaces through guided intake", () => {
+  assert.match(journey, /const fictionalMatter =/);
+  assert.match(journey, /if \(!fictionalMatter\)/);
+  assert.match(journey, /Create or select a separately labeled fictional matter/);
+  assert.match(journey, /\!fictionalMatter \|\| !file/);
+});
+
+test("source selection respects narrow screens and reduced motion", () => {
+  assert.match(home, /function|const inspectSource/);
+  assert.match(home, /max-width: 1023px/);
+  assert.match(home, /scrollIntoView/);
+  assert.match(home, /prefers-reduced-motion: reduce/);
+  assert.match(home, /id="private-source-viewer"/);
+});
