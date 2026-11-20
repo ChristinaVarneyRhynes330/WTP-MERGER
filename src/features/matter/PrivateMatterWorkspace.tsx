@@ -208,7 +208,7 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
                 {matches.map((source) => <article className="wtp-private-card wtp-private-source" key={source.id}>
                   <div><small>{source.source_type} · {source.id.slice(0, 8)}</small><h2>{source.title}</h2>
                   <p>Source date: {source.source_date || "Not verified"} · Registration: {new Date(source.created_at).toLocaleDateString()}</p>
-                  <span>Confirmation: {source.confirmation_state.replaceAll("_", " ")}</span></div>
+                  <span>Confirmation: {source.confirmation_state.replace(/_/g, " ")}</span></div>
                   <div className="wtp-private-source-actions">
                     <button onClick={() => void getOriginal(source)} disabled={!source.source_files[0]}>Request protected original</button>
                     {signedSource?.id === source.source_files[0]?.id && <a href={signedSource.url} target="_blank" rel="noopener noreferrer">Open short-lived link</a>}
