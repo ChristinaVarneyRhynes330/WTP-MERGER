@@ -21,6 +21,14 @@ export function LearningLab() {
   const [playing, setPlaying] = useState(false)
   const [speechNotice, setSpeechNotice] = useState("")
   const { dispatch } = useApp()
+  const goToLearningArea = (id: string) => {
+    const node = document.getElementById(id)
+    node?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    })
+    node?.focus({ preventScroll: true })
+  }
   const mod = learningModules[moduleIndex]
 
   const spokenText = useMemo(() => [
@@ -91,6 +99,9 @@ export function LearningLab() {
           </div>
         </div>
 
+        <button type="button" className="wtp-learning__context-jump" onClick={() => goToLearningArea("wtp-learning-inspector")}>
+          Method, example &amp; source context <ChevronRight size={16} aria-hidden="true" />
+        </button>
         <div className="wtp-learning__grid">
           <nav className="wtp-learning__syllabus" aria-label="Learning modules">
             <div className="wtp-learning__small">THE TEN-MODULE PATH</div>
@@ -181,7 +192,7 @@ export function LearningLab() {
             </div>
           </section>
 
-          <aside className="wtp-learning__inspector" aria-label="Method and source inspector">
+          <aside id="wtp-learning-inspector" className="wtp-learning__inspector" aria-label="Method and source inspector" tabIndex={-1}>
             <div className="wtp-learning__small">CONTEXT INSPECTOR</div>
             <div className="wtp-learning__tabs" role="tablist" aria-label="Inspector category">
               {([
@@ -208,6 +219,9 @@ export function LearningLab() {
               <p>Adapted from the user-supplied Master Operating Framework HTML; its referenced PDFs and legal assertions were not independently checked for this demo.</p>
               <p className="wtp-learning__source-status">Unverified teaching reference · Not an admitted exhibit</p>
             </div>}
+            <button type="button" className="wtp-learning__back-to-reading" onClick={() => goToLearningArea("wtp-learning-title")}>
+              <ChevronLeft size={16} aria-hidden="true" /> Back to lesson
+            </button>
           </aside>
         </div>
 
