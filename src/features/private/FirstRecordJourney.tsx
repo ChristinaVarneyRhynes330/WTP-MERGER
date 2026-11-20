@@ -88,6 +88,9 @@ export function FirstRecordJourney({
   const [outcome, setOutcome] = useState<string | null>(null)
   const [inputVersion, setInputVersion] = useState(0)
 
+  // UI guard only: real authorization still lives in Supabase/RLS.
+  // Keep fictional pilot artifacts out of existing real matter workspaces.
+  const fictionalMatter = /^(fictional|demo|test)(?:[\\s:_-]|$)/i.test(matter.name.trim())
   const steps = journeySteps(matter, sources, sourceRegisterAvailable, verifiedOriginalId)
   const hasRegisteredOriginal = sources.some((source) => source.source_files.some((original) => Boolean(original.id)))
   const firstSource = sources.find((source) => source.source_files.some((original) => Boolean(original.id)))
@@ -108,6 +111,10 @@ export function FirstRecordJourney({
 
     if (!sourceRegisterAvailable) {
       setUploadError("The source register is unavailable. No file was sent.")
+      return
+    }
+    if (!fictionalMatter) {
+      setUploadError("Create or select a separately labeled fictional matter before uploading test records.")
       return
     }
     if (!pilotConfirmed) {
@@ -187,24 +194,30 @@ export function FirstRecordJourney({
           <summary><FilePlus2 size={18} aria-hidden="true" /> Preserve a fictional test original <ArrowRight size={16} aria-hidden="true" /></summary>
           <div className="private-first-record__intake-body">
             <p>This staging flow preserves an original inside the selected authorized matter. Do not upload confidential or real family records while the security gates remain open.</p>
+            {!fictionalMatter && (
+              <p className="private-first-record__feedback private-first-record__feedback--error" role="status">
+                This matter is not labeled as a fictional test matter. To avoid mixing demonstration material with actual case work, create a separate matter named "Fictional Test Matter" from the matter controls before using this uploader.
+                {" "}<a href="#/signin">Open matter controls</a>
+              </p>
+            )}
             <form onSubmit={(event) => void preserve(event)}>
               <label>
                 Harmless fictional text file
-                <input key={inputVersion} type="file" accept=".txt,text/plain" disabled={uploading} onChange={chooseFile} />
+                <input key={inputVersion} type="file" accept=".txt,text/plain" disabled={uploading || !fictionalMatter} onChange={chooseFile} />
               </label>
               <label>
                 Source title
-                <input value={title} maxLength={200} disabled={uploading} placeholder="e.g. Fictional appointment note" onChange={(event) => setTitle(event.target.value)} />
+                <input value={title} maxLength={200} disabled={uploading || !fictionalMatter} placeholder="e.g. Fictional appointment note" onChange={(event) => setTitle(event.target.value)} />
               </label>
               <label>
                 Date written on document (optional, not the event date)
-                <input type="date" value={documentDate} disabled={uploading} onChange={(event) => setDocumentDate(event.target.value)} />
+                <input type="date" value={documentDate} disabled={uploading || !fictionalMatter} onChange={(event) => setDocumentDate(event.target.value)} />
               </label>
               <label className="private-first-record__confirm">
-                <input type="checkbox" checked={pilotConfirmed} disabled={uploading} onChange={(event) => setPilotConfirmed(event.target.checked)} />
+                <input type="checkbox" checked={pilotConfirmed} disabled={uploading || !fictionalMatter} onChange={(event) => setPilotConfirmed(event.target.checked)} />
                 <span>This file contains only harmless fictional test information and no confidential case data.</span>
               </label>
-              <button type="submit" className="button button--primary" disabled={uploading || !sourceRegisterAvailable || !file || !title.trim()}>
+              <button type="submit" className="button button--primary" disabled={uploading || !sourceRegisterAvailable || !fictionalMatter || !file || !title.trim()}>
                 {uploading ? <LoaderCircle size={16} aria-hidden="true" /> : <FilePlus2 size={16} aria-hidden="true" />}
                 {uploading ? "Registering original…" : "Preserve test original"}
               </button>
