@@ -4,10 +4,12 @@ import type {
   EvidencePathway,
   HandoffFile,
   Matter,
+  MatterRole,
 } from "../types/database"
 
 export type CounselHandoffData = {
   matter: Matter
+  role: MatterRole
   files: Array<
     HandoffFile & {
       evidence_pathways: EvidencePathway[]
@@ -172,6 +174,11 @@ export async function loadCounselHandoff(matterId: string): Promise<CounselHando
   })
   if (memberError || !member) throw new Error("You are not authorized to access this matter.")
 
+  const { data: membership, error: membershipError } = await supabase
+    .from("matter_members").select("role")
+    .eq("matter_id", matterId).eq("user_id", user.id).single()
+  if (membershipError || !membership) throw new Error("Your access role could not be verified.")
+
   const { data: matter, error: matterError } = await supabase
     .from("matters")
     .select("*")
@@ -204,6 +211,7 @@ export async function loadCounselHandoff(matterId: string): Promise<CounselHando
 
   return {
     matter,
+    role: membership.role,
     files: (files ?? []).map((file) => ({
       ...(file as HandoffFile),
       evidence_pathways: (pathways ?? []).filter(
