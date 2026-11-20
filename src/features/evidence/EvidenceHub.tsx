@@ -3,7 +3,7 @@ import {
   FilePlus2, FileQuestion, FileText, Files, FolderSearch, Gavel, Info,
   Link2, MessageSquare, NotebookPen, Plus, RotateCcw, Search,
 } from "lucide-react"
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { useApp } from "../../state/AppContext"
 import { LocalFileService } from "../../services/localFiles"
 import type { DocumentRecord, Draft, Note, TimelineEntry } from "../../types"
@@ -33,6 +33,8 @@ export function EvidenceHub({
   const [eventDate, setEventDate] = useState("")
   const [dateKind, setDateKind] = useState<TimelineEntry["dateKind"]>("disputed")
   const [feedback, setFeedback] = useState("")
+  const [newRecordNotice, setNewRecordNotice] = useState<string | null>(null)
+  const observedRecords = useRef<{ caseId: string; ids: string[] } | null>(null)
 
   // All derived records, passages and linked work are confined to the active
   // fictional demo case. Nothing queries or updates private Supabase matters.
@@ -44,6 +46,20 @@ export function EvidenceHub({
     () => state.passages.filter(p => p.caseId === state.activeCaseId),
     [state.passages, state.activeCaseId],
   )
+  useEffect(() => {
+    const previous = observedRecords.current
+    if (previous?.caseId === state.activeCaseId) {
+      const added = caseRecords.find(record => !previous.ids.includes(record.id))
+      if (added) {
+        setSelectedId(added.id)
+        setNewRecordNotice(`Local document details saved: ${added.title}. File bytes remain in browser memory only, not preserved in secure storage.`)
+      }
+    } else {
+      setNewRecordNotice(null)
+    }
+    observedRecords.current = { caseId: state.activeCaseId, ids: caseRecords.map(record => record.id) }
+  }, [caseRecords, state.activeCaseId])
+
   const types = useMemo(
     () => Array.from(new Set(caseRecords.map(record => record.type))).sort(),
     [caseRecords],
@@ -118,6 +134,7 @@ export function EvidenceHub({
     setPassageId(null)
     setTab("source")
     setFeedback("")
+    setNewRecordNotice(null)
     if (window.matchMedia("(max-width: 900px)").matches) {
       window.requestAnimationFrame(() => {
         const inspector = document.getElementById("evidence-hub-inspector")
@@ -195,6 +212,12 @@ export function EvidenceHub({
           <Plus size={17} aria-hidden="true" /> Add local document
         </button>
       </div>
+
+      {newRecordNotice && (
+        <p className="wtp-evidence-hub__arrival" role="status">
+          <Check size={16} aria-hidden="true" /> {newRecordNotice}
+        </p>
+      )}
 
       <div className="wtp-evidence-hub__stats" aria-label="Active sample case summary">
         <div><span>Records</span><strong>{caseRecords.length}</strong><small>In this demo case</small></div>
