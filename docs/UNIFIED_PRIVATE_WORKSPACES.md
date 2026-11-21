@@ -16,6 +16,25 @@
 
 Reference: `we_the_parent_interactive_workspace_mockup.html` supplied by the founder, not committed to this public repository. The new scoped `PrivateMatterWorkspace` uses existing BotanicalArt and Monogram components and founder palette: obsidian, champagne, antique cream, dusty rose, sage, and denim. It carries compact sidebar navigation, glass cards and gold buttons, with a reduced-motion/mobile responsive layout. Public and fictional demo visual styles remain untouched.
 
+### Visual-parity implementation tranche 1 — 20 November 2026
+
+Design sources: founder's public homepage screenshots, the approved fictional conversation/source-viewer demo, the Canva Parent MVP prototype screenshots and its supplied HTML/CSS (reference source, not executable product data).
+
+**Implemented in the private parent branch:**
+- Scoped deep teal-black background with public-site ink, dusty rose, ivory and champagne palette.
+- Layered botanical photograph using the repository's existing artwork; separate environmental veil for legibility.
+- Compact crest-led, gold-rimmed sidebar with responsive horizontal destination navigation on narrow screens.
+- Three distinct materials: teal/obsidian navigation, rose-smoked glass cards, and champagne-highlighted controls.
+- Guided ten-stage workflow *separate* from the twelve permanent destinations.
+- Case Headquarters hero, attention cards, verified-on-screen source registration counts and status caveats. These cards never claim an upload, OCR result or permission test that did not occur.
+- Focus, forced-color and reduced-motion styling.
+
+**Preserved:** public website, fictional demo, Supabase authentication, matter membership checks, source/original services, and AI call paths.
+
+**Still to verify / implement:** pixel-level screenshots of rendered private app at matched desktop/tablet/phone viewports; precise bundled Playfair/Lora/DM Sans font assets if approved; the complete original-vs-derivative compare layout; accessible responsive Source Viewer; reference-faithful input and modal components; authentic counsel materials; object-grant security and source-integrity acceptance tests.
+
+**Security boundary:** theme/style parity is not backend permission parity. The draft code must continue to use fictional cases only until the release-blocking tests are independently demonstrated.
+
 ### Parent mockup navigation parity — interim implementation
 
 The parent workspace now exposes twelve destinations using the supplied mockup's screen labels and an added `Share & Collaborate` destination: Case Headquarters; Evidence Library; Review What We Found; Source Viewer; Ask My Case; Timeline; Learn in Context; Tasks & Follow-Up; Activity History; MVP Acceptance Journey; Designed for Later; Share & Collaborate.
