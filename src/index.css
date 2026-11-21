@@ -1023,3 +1023,272 @@ textarea { padding: 11px 12px; resize: vertical; }
     transition-duration: 0.001ms !important;
   }
 }
+
+/* WE THE PARENT — Counsel visual integration, draft workspace only.
+   Preserve the three-pane review workflow; no permission or data change.
+   Matches parent/public teal-black, rose-smoked glass and champagne edges. */
+.counsel-handoff {
+  --counsel-ink: #0f1a1c;
+  --counsel-teal: #183a3d;
+  --counsel-rose: #b67872;
+  --counsel-champagne: #c9a77d;
+  --counsel-ivory: #f2e9e3;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+  padding: clamp(22px, 3vw, 40px);
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 83% 12%, rgba(182, 120, 114, .18), transparent 52%),
+    linear-gradient(145deg, #0f1a1c, #122729 65%, #10191b);
+  color: var(--counsel-ivory);
+}
+.counsel-handoff__art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .24;
+  pointer-events: none;
+  filter: saturate(.76) brightness(.72);
+}
+.counsel-handoff__art .art__photo { object-position: center 25%; }
+.counsel-handoff__art .art__veil {
+  background: linear-gradient(90deg, rgba(6, 14, 15, .83), rgba(8, 19, 21, .55) 55%, rgba(6, 17, 18, .88));
+}
+.counsel-handoff__header {
+  width: 100%;
+  max-width: 1660px;
+  margin: 0 auto 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(201, 167, 125, .42);
+}
+.counsel-handoff__header h1 {
+  font: 500 clamp(36px, 3.2vw, 52px)/1.06 var(--font-display, Georgia, serif);
+  letter-spacing: -.025em;
+  color: #fff0e9;
+  margin: 7px 0 10px;
+}
+.counsel-handoff__header p {
+  color: #e0d1c9;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.counsel-handoff .overline {
+  color: #d7b187;
+  letter-spacing: .15em;
+}
+.counsel-handoff__back {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  width: fit-content;
+  min-height: 35px;
+  margin-bottom: 10px;
+  padding: 3px 0;
+  color: #e2c9a5;
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.counsel-handoff__back svg { transform: rotate(180deg); }
+.counsel-handoff__back:hover { color: #ffebce; text-decoration: underline; }
+.counsel-handoff__header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.counsel-handoff__workspace-tag {
+  border: 1px solid rgba(201, 167, 125, .56);
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: #e9d2b4;
+  background: rgba(18, 34, 36, .80);
+  font-size: 10px;
+  letter-spacing: .045em;
+}
+.counsel-handoff__guardrail {
+  width: 100%;
+  max-width: 1660px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 19px;
+  margin: 0 auto 20px;
+  border: 1px solid rgba(201, 167, 125, .48);
+  border-radius: 14px;
+  background: linear-gradient(105deg, rgba(22, 46, 47, .90), rgba(52, 36, 41, .73));
+  box-shadow: inset 0 1px rgba(253, 242, 224, .12);
+  color: #e7d8cc;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.counsel-handoff__guardrail svg { flex: none; color: #e0bd8f; }
+.counsel-handoff__guardrail strong { color: #fff1e9; }
+.counsel-handoff__workspace {
+  width: 100%;
+  max-width: 1660px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: clamp(210px, 19vw, 260px) minmax(0, 1fr) clamp(290px, 26vw, 370px);
+  gap: 14px;
+  align-items: start;
+}
+.counsel-handoff .handoff-tree,
+.counsel-handoff .handoff-records,
+.counsel-handoff .handoff-inspector {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(201, 167, 125, .72);
+  outline: 1px solid rgba(250, 228, 194, .10);
+  outline-offset: -5px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(26, 45, 45, .88), rgba(62, 42, 44, .82) 72%, rgba(18, 30, 32, .88));
+  backdrop-filter: blur(19px) saturate(110%);
+  -webkit-backdrop-filter: blur(19px) saturate(110%);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .40), inset 0 1px rgba(255, 246, 221, .23), inset 0 0 0 3px rgba(8, 20, 21, .39);
+}
+.counsel-handoff .handoff-tree {
+  max-height: min(77dvh, 900px);
+  overflow-y: auto;
+  background: linear-gradient(160deg, rgba(36, 48, 46, .88), rgba(28, 33, 33, .90));
+}
+.counsel-handoff .handoff-records {
+  display: flex;
+  flex-direction: column;
+  max-height: min(77dvh, 900px);
+  background: linear-gradient(150deg, rgba(18, 39, 41, .93), rgba(58, 39, 42, .79));
+}
+.counsel-handoff .handoff-inspector {
+  max-height: min(77dvh, 900px);
+  overflow-y: auto;
+  position: sticky;
+  top: 12px;
+  background: linear-gradient(150deg, rgba(53, 41, 43, .88), rgba(16, 35, 37, .93));
+}
+.counsel-handoff .handoff-pane__heading {
+  margin-bottom: 16px;
+  align-items: center;
+}
+.counsel-handoff .handoff-pane__heading h2 {
+  color: #f8ebe4;
+  font: 500 clamp(22px, 1.8vw, 28px)/1.14 var(--font-display, Georgia, serif);
+}
+.counsel-handoff .handoff-pane__heading .muted {
+  color: #ddcaba;
+  font-size: 11px;
+}
+.counsel-handoff .handoff-tree__row {
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+.counsel-handoff .handoff-tree__row:hover,
+.counsel-handoff .handoff-tree__row.is-selected {
+  border-color: rgba(201, 167, 125, .56);
+  background: linear-gradient(95deg, rgba(182, 120, 114, .27), rgba(26, 54, 55, .55));
+}
+.counsel-handoff .handoff-tree__label {
+  min-height: 36px;
+  color: #f2e4da;
+  font-size: 12px;
+}
+.counsel-handoff .handoff-tree__label small {
+  flex: none;
+  color: #e0bd90;
+}
+.counsel-handoff .handoff-tree__label svg,
+.counsel-handoff .handoff-tree__toggle svg { color: #d5b389; }
+.counsel-handoff .handoff-table-wrap {
+  flex: 1 1 auto;
+  min-height: 200px;
+  max-height: none;
+  overflow: auto;
+  border: 1px solid rgba(201, 167, 125, .30);
+  border-radius: 13px;
+  background: rgba(10, 26, 28, .42);
+}
+.counsel-handoff .handoff-table {
+  min-width: 540px;
+}
+.counsel-handoff .handoff-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #142527;
+}
+.counsel-handoff .handoff-table th {
+  color: #e0c7aa;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+.counsel-handoff .handoff-table td {
+  border-top-color: rgba(201, 167, 125, .18);
+  color: #e9d9cf;
+}
+.counsel-handoff .handoff-table td strong {
+  color: #f8ece5;
+  overflow-wrap: anywhere;
+}
+.counsel-handoff .handoff-table tr:hover td {
+  background: rgba(52, 71, 69, .46);
+}
+.counsel-handoff .handoff-table tr.is-selected td {
+  background: rgba(182, 120, 114, .24);
+}
+.counsel-handoff .handoff-filters > input,
+.counsel-handoff .handoff-inspector :is(input:not([type="checkbox"]), textarea, select) {
+  background: rgba(12, 30, 32, .93);
+  border-color: rgba(201, 167, 125, .54);
+  color: #f5e9df;
+  border-radius: 10px;
+}
+.counsel-handoff .handoff-filters > input:focus-visible,
+.counsel-handoff .handoff-inspector :is(input, textarea, select):focus-visible,
+.counsel-handoff :is(button, a):focus-visible {
+  outline: 3px solid #f1d3a7;
+  outline-offset: 2px;
+}
+.counsel-handoff .handoff-filter-check input { accent-color: #c9a77d; }
+.counsel-handoff .handoff-inspector__meta {
+  border-color: rgba(201, 167, 125, .35);
+}
+.counsel-handoff .handoff-inspector h3 {
+  overflow-wrap: anywhere;
+  color: #f6e8df;
+  font: 500 17px/1.3 var(--font-display, Georgia, serif);
+}
+.counsel-handoff .handoff-inspector__path { color: #e3cec0; }
+.counsel-handoff .handoff-inspector__meta dd { color: #f5e8de; }
+.counsel-handoff .handoff-inspector label { color: #dfc8b7; }
+.counsel-handoff .handoff-suggestion {
+  border: 1px solid rgba(201, 167, 125, .53);
+  border-radius: 12px;
+  background: rgba(57, 40, 45, .70);
+}
+@media (max-width: 1180px) {
+  .counsel-handoff__workspace {
+    grid-template-columns: minmax(185px, .7fr) minmax(0, 1.7fr);
+  }
+  .counsel-handoff .handoff-inspector {
+    grid-column: 1 / -1;
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+@media (max-width: 740px) {
+  .counsel-handoff { padding: 18px 12px 26px; }
+  .counsel-handoff__workspace { grid-template-columns: minmax(0, 1fr); }
+  .counsel-handoff__header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .counsel-handoff__header-actions { justify-content: flex-start; }
+  .counsel-handoff .handoff-tree { max-height: 275px; }
+  .counsel-handoff .handoff-records { max-height: 530px; }
+  .counsel-handoff .handoff-inspector { grid-column: auto; max-height: none; }
+  .counsel-handoff .handoff-table { min-width: 520px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .counsel-handoff * { scroll-behavior: auto; }
+}
