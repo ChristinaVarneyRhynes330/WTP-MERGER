@@ -32,6 +32,21 @@ const areas: Array<{ id: Area; name: string; icon: typeof FolderLock }> = [
   { id: "collaboration", name: "Share & Collaborate", icon: BriefcaseBusiness },
 ]
 
+// The guided sequence is separate from the permanent destination list. These
+// buttons navigate to their real private views, including honest pending states.
+const parentJourney: Array<{ label: string; area: Area }> = [
+  { label: "MATTER", area: "headquarters" },
+  { label: "UPLOAD", area: "evidence" },
+  { label: "PRESERVE", area: "source" },
+  { label: "PROCESS", area: "review" },
+  { label: "REVIEW", area: "review" },
+  { label: "SOURCE-CHECK", area: "source" },
+  { label: "ORGANIZE", area: "timeline" },
+  { label: "ASK", area: "ask" },
+  { label: "CONNECT", area: "learning" },
+  { label: "PREPARE", area: "tasks" },
+]
+
 const plannedSections: Partial<Record<Area, { heading: string; description: string; limitation: string }>> = {
   timeline: {
     heading: "Timeline",
@@ -215,11 +230,13 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
       <div className="wtp-private-shell">
         <aside className="wtp-private-sidebar" aria-label="Parent matter navigation">
           <a className="wtp-private-brand" href="#/" aria-label="We The Parent home">
-            <Monogram size={62} />
-            <span><strong>WE THE PARENT</strong><small>PRIVATE CASE WORKSPACE</small></span>
+            <Monogram size={78} />
+            <span><strong>WE THE PARENT</strong><small>YOUR CASE · YOUR VOICE</small></span>
           </a>
-          <p className="wtp-private-eyebrow">AUTHORIZED MATTER</p>
-          <div className="wtp-private-matter-name" title={matter.name}>{matter.name}</div>
+          <div className="wtp-private-sidebar-context">
+            <p className="wtp-private-eyebrow">PRIVATE MATTER WORKSPACE</p>
+            <div className="wtp-private-matter-name" title={matter.name}>{matter.name}</div>
+          </div>
           <nav aria-label="Workspace tools" className="wtp-private-nav">
             {areas.map(({ id, name, icon: Icon }) => (
               <button key={id} type="button" className={area === id ? "active" : ""}
@@ -234,22 +251,66 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
           </div>
         </aside>
         <main className="wtp-private-main">
+          <BotanicalArt kind="app" className="wtp-private-main-art" />
           <header className="wtp-private-top">
             <span>{matter.name} / {areas.find((item) => item.id === area)?.name}</span>
             <span><LockKeyhole size={14} aria-hidden="true"/> {role.toUpperCase()} ACCESS</span>
           </header>
           <div className="wtp-private-body">
             {area === "headquarters" && <>
-              <div className="wtp-private-heading">
-                <p className="wtp-private-eyebrow">CASE HEADQUARTERS · PRIVATE MATTER</p>
-                <h1>Your case, one careful step at a time.</h1>
-                <p>Review the sources you have preserved, identify what remains uncertain, and move into counsel review only when you decide to share.</p>
+              <div className="wtp-private-heading wtp-private-heading--hero">
+                <div>
+                  <p className="wtp-private-eyebrow">CASE HEADQUARTERS · PRIVATE MATTER</p>
+                  <h1>Your case, one careful step at a time.</h1>
+                  <p>Keep your records together, inspect what each source can show, and review proposed information before relying on it.</p>
+                </div>
+                <button className="wtp-private-hero-action" type="button" onClick={() => setArea("review")}>
+                  Review what we found <ArrowRight size={16} aria-hidden="true"/>
+                </button>
+              </div>
+              <nav className="wtp-private-workflow" aria-label="Ten-stage parent journey">
+                {parentJourney.map(({ label, area: destination }, index) => (
+                  <button key={label} type="button" onClick={() => setArea(destination)}
+                    title={destination === "headquarters" ? "Open matter headquarters" : "Open " + areas.find((item) => item.id === destination)?.name}>
+                    <span className="wtp-private-workflow-number">{String(index + 1).padStart(2, "0")}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </nav>
+              <div className="wtp-private-section-heading">
+                <h2>What needs your attention</h2>
+                <span>Current registered information · not a release certification</span>
+              </div>
+              <div className="wtp-private-attention-grid">
+                <section className="wtp-private-card wtp-private-attention">
+                  <span className="wtp-private-status wtp-private-status--rose">P0 · VERIFICATION REQUIRED</span>
+                  <h3>Protect the record</h3>
+                  <p>{preservedSources.length} source record(s) have registered file metadata. Original-byte integrity and object-level access controls still need independent testing.</p>
+                  <button type="button" onClick={() => setArea("source")}>Inspect registered sources <ArrowRight size={14} aria-hidden="true"/></button>
+                </section>
+                <section className="wtp-private-card wtp-private-attention">
+                  <span className="wtp-private-status wtp-private-status--sage">HUMAN REVIEW</span>
+                  <h3>Check what is confirmed</h3>
+                  <p>{sources.filter((item) => item.confirmation_state !== "user_confirmed").length} source record(s) have not been user-confirmed. Registration and review are not proof of a case fact.</p>
+                  <button type="button" onClick={() => setArea("review")}>Review source status <ArrowRight size={14} aria-hidden="true"/></button>
+                </section>
+                <section className="wtp-private-card wtp-private-attention">
+                  <span className="wtp-private-status wtp-private-status--amber">BUILD STATUS · PARTIAL</span>
+                  <h3>Processing needs verification</h3>
+                  <p>Private extraction review, retry tracking, and full audit history are not yet connected. A failed operation must never look completed.</p>
+                  <button type="button" onClick={() => setArea("acceptance")}>See readiness checks <ArrowRight size={14} aria-hidden="true"/></button>
+                </section>
+              </div>
+              <div className="wtp-private-section-heading">
+                <h2>Matter at a glance</h2>
+                <span>Authorized metadata only</span>
               </div>
               <div className="wtp-private-stats">
                 <section className="wtp-private-card"><FileCheck2 aria-hidden="true"/><strong>{sources.length}</strong><span>Registered sources</span></section>
                 <section className="wtp-private-card"><Search aria-hidden="true"/><strong>{sources.filter((s) => s.confirmation_state !== "user_confirmed").length}</strong><span>Not user-confirmed</span></section>
                 <section className="wtp-private-card"><FolderLock aria-hidden="true"/><strong>{role}</strong><span>Access to this matter</span></section>
               </div>
+              <div className="wtp-private-section-heading"><h2>Continue your work</h2></div>
               <div className="wtp-private-feature-grid">
                 <section className="wtp-private-card wtp-private-feature">
                   <FileSearch size={24} aria-hidden="true"/>
