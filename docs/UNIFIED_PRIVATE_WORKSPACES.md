@@ -71,3 +71,20 @@ npm run build
 The latest project CI is necessary but not sufficient to launch. Pull-request visual and browser authorization tests must pass before release. All source data must be fictional until the privacy gate is met.
 
 **Repository confidentiality:** The existing development branch already contains case-specific identifiers in tracked source. Merely protecting an application route does not make a public repository private. Convert the repository to private and audit history before treating any content as confidential.
+
+
+## Counsel handoff separation — 21 November 2026
+
+The pre-existing counsel handoff inventory was preserved as a separate module rather than refactored into the core evidence services:
+
+- `src/handoff-module/LegacyCounselHandoffView.tsx` preserves the hierarchy/register/inspector interface.
+- `src/handoff-module/legacyService.ts` preserves existing Supabase calls and metadata review behavior, still explicitly **legacy**.
+- `src/handoff-module/HandoffModule.tsx` is the private route boundary. It checks authenticated matter ownership before displaying the legacy inventory. Non-owners see a disconnected state.
+- `src/handoff-module/connection.ts` defines four visibility domains and a fail-closed future bridge. **No objects can be shared through it.**
+- The parent Share & Collaborate card presents an owner-only **review of the legacy inventory**, not a professional invitation.
+- `#/demo` and `#/app` remain separate. The counsel route remounts on session-user or matter changes.
+
+Important: this is a **client-side separation, not a completed security remediation**. Legacy database read policies still depend on matter membership; other API clients may reach data outside this UI until RLS, Storage, signed links, search, audit and pre-AI authorization are remediated. The legacy note field is not Counsel Private, and legacy AI triage is disabled in the interface. Do not treat this tranche as release-ready or as proof that the November 6 historical handoff snapshot is identical to the November 19 migration.
+
+Validation: Node contract checks and the existing test suite; CI runs `npm ci`, `npm test`, and `npm run build` (including TypeScript typecheck). Live `AT-SEC-GRANT-001` through `010` remain unexecuted against a clean isolated staging environment.
+
