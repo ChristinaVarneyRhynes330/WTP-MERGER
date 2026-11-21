@@ -435,14 +435,18 @@ export function PrivateMatterWorkspace({ matterId }: { matterId: string }) {
               <div className="wtp-private-heading">
                 <p className="wtp-private-eyebrow">PERMISSION-BOUND COLLABORATION</p>
                 <h1>Share & Collaborate</h1>
-                <p>Legal review is not automatic sharing. Only a matter-authorized member can read its counsel workspace; professional identity and sharing permissions must be checked separately.</p>
+                <p>This module remains separate from the parent evidence system. The existing handoff inventory can be reviewed by its matter owner; no professional receives access through a matter-membership link.</p>
               </div>
               <section className="wtp-private-card wtp-private-collaboration">
                 <BriefcaseBusiness size={26} aria-hidden="true"/>
-                <h2>Specialized counsel review</h2>
-                <p>Open the source-linked preservation register and consultation agenda for this matter. The legal significance of a source is a human decision.</p>
-                <a href={counselUrl}>Open authorized counsel workspace <ArrowRight size={16}/></a>
-                <p className="wtp-private-note">Invitations, selective per-document sharing and attorney-only privileged notes require additional protected access controls and are not active here.</p>
+                <h2>Preserved handoff inventory</h2>
+                <p>The existing preservation register is maintained as a separate owner-review module. It is not an active counsel invitation, a shared evidence grant, or proof of record preservation.</p>
+                {role === "owner" ? (
+                  <a href={counselUrl}>Review legacy handoff inventory <ArrowRight size={16}/></a>
+                ) : (
+                  <p role="status">Handoff connection disconnected. No shared records are available.</p>
+                )}
+                <p className="wtp-private-note">Professional connection: disconnected. Object-by-object sharing, attorney-private work product, permission-aware search and AI retrieval, and revocation are not yet implemented.</p>
               </section>
             </>}
             <footer className="wtp-private-footer">
