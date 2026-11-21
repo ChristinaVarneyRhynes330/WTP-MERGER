@@ -8,6 +8,7 @@ const matter = read("../src/features/matter/PrivateMatterWorkspace.tsx")
 const counsel = read("../src/features/counsel-handoff/CounselHandoffView.tsx")
 const counselService = read("../src/services/counselHandoff.ts")
 const style = read("../src/features/matter/private-matter.css")
+const siteStyle = read("../src/index.css")
 
 test("private app route renders matter-backed UI instead of fictitious AppProvider", () => {
   assert.match(app, /<PrivateMatterWorkspace matterId=/)
@@ -96,4 +97,24 @@ test("visual parity tranche uses teal-black materials with Canva workflow on aut
   assert.match(style, /@media\(forced-colors:active\)/)
   // The fictional AppProvider remains routed separately.
   assert.match(app, /case "demo":\s*return \(\s*<AppProvider>/)
+})
+
+
+test("counsel workspace reuses the botanical atmosphere without changing file permissions", () => {
+  assert.match(counsel, /BotanicalArt kind="app" className="counsel-handoff__art"/)
+  assert.match(counsel, /className="counsel-handoff__workspace-tag"/)
+  assert.match(counsel, /object-specific sharing and Counsel Private isolation are not yet validated/)
+  assert.match(siteStyle, /Counsel visual integration, draft workspace only/)
+  assert.match(siteStyle, /--counsel-ink: #0f1a1c/)
+  assert.match(siteStyle, /--counsel-teal: #183a3d/)
+  assert.match(siteStyle, /--counsel-rose: #b67872/)
+  assert.match(siteStyle, /--counsel-champagne: #c9a77d/)
+  assert.match(siteStyle, /grid-template-columns: clamp\(210px, 19vw, 260px\) minmax\(0, 1fr\) clamp\(290px, 26vw, 370px\)/)
+  assert.match(siteStyle, /@media \(max-width: 740px\)/)
+})
+
+test("folder record counters include descendant files, not only direct children", () => {
+  assert.match(counsel, /function countTreeFiles\(node: TreeNode\): number/)
+  assert.match(counsel, /node\.files\.length \+ node\.children\.reduce\(\(total, child\) => total \+ countTreeFiles\(child\), 0\)/)
+  assert.match(counsel, /<small title=\{\x60\$\{countTreeFiles\(node\)\} records in this folder and its subfolders\x60\}>\{countTreeFiles\(node\)\}<\/small>/)
 })
