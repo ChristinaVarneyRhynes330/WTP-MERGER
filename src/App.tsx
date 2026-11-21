@@ -6,7 +6,7 @@ import { BotanicalArt } from "./components/brand"
 import { Toast, useMediaQuery } from "./components/ui"
 import { ChatView } from "./features/chat/ChatView"
 import { SourceWorkbench } from "./features/evidence/SourceWorkbench"
-import { CounselHandoffView } from "./features/counsel-handoff/CounselHandoffView"
+import { HandoffModule } from "./handoff-module/HandoffModule"
 import { PrivateMatterWorkspace } from "./features/matter/PrivateMatterWorkspace"
 import {
   DesignReviewView,
@@ -238,7 +238,7 @@ function PrivateCounselHandoffRoute() {
   if (!ready) return null
   if (!session) return <SignInView />
   const match = location.hash.match(/^#\/app\/matters\/([0-9a-f-]{36})\/counsel$/i)
-  return match ? <CounselHandoffView matterId={match[1]} /> : <SignInView />
+  return match ? <HandoffModule key={match[1]} matterId={match[1]} /> : <SignInView />
 }
 
 function PrivateWorkspaceRoute() {
