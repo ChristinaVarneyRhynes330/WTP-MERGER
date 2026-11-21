@@ -238,7 +238,7 @@ function PrivateCounselHandoffRoute() {
   if (!ready) return null
   if (!session) return <SignInView />
   const match = location.hash.match(/^#\/app\/matters\/([0-9a-f-]{36})\/counsel$/i)
-  return match ? <HandoffModule key={match[1]} matterId={match[1]} /> : <SignInView />
+  return match ? <HandoffModule key={`${session.user.id}:${match[1]}`} matterId={match[1]} /> : <SignInView />
 }
 
 function PrivateWorkspaceRoute() {
