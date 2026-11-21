@@ -5,8 +5,10 @@ import { readFileSync } from "node:fs"
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8")
 const app = read("../src/App.tsx")
 const matter = read("../src/features/matter/PrivateMatterWorkspace.tsx")
-const counsel = read("../src/features/counsel-handoff/CounselHandoffView.tsx")
-const counselService = read("../src/services/counselHandoff.ts")
+const counsel = read("../src/handoff-module/LegacyCounselHandoffView.tsx")
+const boundary = read("../src/handoff-module/HandoffModule.tsx")
+const connection = read("../src/handoff-module/connection.ts")
+const counselService = read("../src/handoff-module/legacyService.ts")
 const style = read("../src/features/matter/private-matter.css")
 const siteStyle = read("../src/index.css")
 
@@ -19,7 +21,7 @@ test("private app route renders matter-backed UI instead of fictitious AppProvid
 
 test("counsel route and service use authorized matter ID, never a case-number lookup", () => {
   assert.match(app, /app\\\/matters\\\//)
-  assert.match(app, /<CounselHandoffView matterId=/)
+  assert.match(app, /<HandoffModule key=\{match\[1\]\} matterId=/)
   assert.match(counsel, /loadCounselHandoff\(matterId\)/)
   assert.match(counselService, /rpc\("is_matter_member"/)
   assert.match(counselService, /\.eq\("id", matterId\)/)
@@ -117,4 +119,20 @@ test("folder record counters include descendant files, not only direct children"
   assert.match(counsel, /function countTreeFiles\(node: TreeNode\): number/)
   assert.match(counsel, /node\.files\.length \+ node\.children\.reduce\(\(total, child\) => total \+ countTreeFiles\(child\), 0\)/)
   assert.match(counsel, /<small title=\{\x60\$\{countTreeFiles\(node\)\} records in this folder and its subfolders\x60\}>\{countTreeFiles\(node\)\}<\/small>/)
+})
+
+test("separate handoff module fails closed and only loads owner legacy UI after owner check", () => {
+  assert.match(app, /from "\.\/handoff-module\/HandoffModule"/)
+  assert.match(boundary, /supabase\.auth\.getUser\(\)/)
+  assert.match(boundary, /\.select\("owner_id"\)/)
+  assert.match(boundary, /matter\?\.owner_id === auth\.user\.id/)
+  assert.match(boundary, /if \(access === "owner"\)/)
+  assert.match(boundary, /LegacyCounselHandoffView matterId=\{matterId\}/)
+  assert.match(connection, /status: "disconnected"/)
+  assert.match(connection, /authorizedObjectIds: \[\]/)
+  assert.match(connection, /async listGrantedObjects\(\)/)
+  assert.match(matter, /role === "owner"/)
+  assert.match(matter, /Professional connection: disconnected/)
+  assert.match(counsel, /Legacy inventory review/)
+  assert.match(counsel, /disabled title="Unavailable until pre-AI-context object-grant filtering is tested"/)
 })
