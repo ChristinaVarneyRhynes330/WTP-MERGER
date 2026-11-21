@@ -36,7 +36,7 @@ test("browser configuration has no committed keys or private case examples", () 
   assert.doesNotMatch(demo, /\b\d{2}-20\d{2}-DP-\d{6}\b|real.case.identifier/i);
 });
 
-test("counsel handoff tables require matter membership and preserve review fields", () => {
+test("legacy counsel tables expose matter-membership access pending object-grant remediation", () => {
   for (const table of ["handoff_files", "evidence_pathways", "counsel_qa_items"]) {
     assert.match(handoffSql, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
     assert.match(handoffSql, new RegExp(`on public\\.${table} for select to authenticated`, "i"));
