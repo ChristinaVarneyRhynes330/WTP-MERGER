@@ -4,14 +4,12 @@ import type {
   EvidencePathway,
   HandoffFile,
   Matter,
+  MatterRole,
 } from "../types/database"
-
-export const COUNSEL_HANDOFF_CASE_NUMBER = "5D2026-2915"
-export const COUNSEL_HANDOFF_LOWER_TRIBUNAL =
-  "05-2024-DP-000587-XXDP-BC"
 
 export type CounselHandoffData = {
   matter: Matter
+  role: MatterRole
   files: Array<
     HandoffFile & {
       evidence_pathways: EvidencePathway[]
@@ -160,7 +158,10 @@ export async function triageHandoffFile(
   }
 }
 
-export async function loadCounselHandoff(): Promise<CounselHandoffData> {
+export async function loadCounselHandoff(matterId: string): Promise<CounselHandoffData> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(matterId)) {
+    throw new Error("A valid authorized matter identifier is required.")
+  }
   const {
     data: { user },
     error: userError,
@@ -168,10 +169,20 @@ export async function loadCounselHandoff(): Promise<CounselHandoffData> {
   if (userError) throw userError
   if (!user) throw new Error("Authentication is required.")
 
+  const { data: member, error: memberError } = await supabase.rpc("is_matter_member", {
+    target_matter_id: matterId,
+  })
+  if (memberError || !member) throw new Error("You are not authorized to access this matter.")
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("matter_members").select("role")
+    .eq("matter_id", matterId).eq("user_id", user.id).single()
+  if (membershipError || !membership) throw new Error("Your access role could not be verified.")
+
   const { data: matter, error: matterError } = await supabase
     .from("matters")
     .select("*")
-    .eq("case_number", COUNSEL_HANDOFF_CASE_NUMBER)
+    .eq("id", matterId)
     .is("archived_at", null)
     .single()
   if (matterError) throw matterError
@@ -200,6 +211,7 @@ export async function loadCounselHandoff(): Promise<CounselHandoffData> {
 
   return {
     matter,
+    role: membership.role,
     files: (files ?? []).map((file) => ({
       ...(file as HandoffFile),
       evidence_pathways: (pathways ?? []).filter(

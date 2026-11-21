@@ -9,17 +9,16 @@ import {
   Sparkles,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Button, EmptyState, ReadingSurface } from "../../components/ui"
+import { Button, EmptyState, ReadingSurface } from "../components/ui"
+import { BotanicalArt } from "../components/brand"
 import {
-  COUNSEL_HANDOFF_CASE_NUMBER,
-  COUNSEL_HANDOFF_LOWER_TRIBUNAL,
   loadCounselHandoff,
   triageHandoffFile,
   updateHandoffReview,
   type CounselHandoffData,
   type CounselTriageSuggestion,
-} from "../../services/counselHandoff"
-import type { HandoffFile } from "../../types/database"
+} from "./legacyService"
+import type { HandoffFile } from "../types/database"
 
 const pathwayLabels = [
   ["clerk_filing_status", "Filed With Clerk?"],
@@ -58,6 +57,10 @@ function buildTree(files: HandoffFile[]) {
   return root
 }
 
+function countTreeFiles(node: TreeNode): number {
+  return node.files.length + node.children.reduce((total, child) => total + countTreeFiles(child), 0)
+}
+
 function FolderTree({
   node,
   selectedPath,
@@ -90,7 +93,7 @@ function FolderTree({
         <button className="handoff-tree__label" onClick={() => onSelect(node.path)}>
           <FileText size={15} aria-hidden="true" />
           <span>{node.name}</span>
-          <small>{node.files.length + node.children.reduce((sum, child) => sum + child.files.length, 0)}</small>
+          <small title={`${countTreeFiles(node)} records in this folder and its subfolders`}>{countTreeFiles(node)}</small>
         </button>
       </div>
       {!isCollapsed && hasChildren && (
@@ -111,7 +114,7 @@ function FolderTree({
   )
 }
 
-export function CounselHandoffView() {
+export function LegacyCounselHandoffView({ matterId }: { matterId: string }) {
   const [data, setData] = useState<CounselHandoffData | null>(null)
   const [selectedFileId, setSelectedFileId] = useState<string>()
   const [selectedPath, setSelectedPath] = useState("")
@@ -125,7 +128,7 @@ export function CounselHandoffView() {
     setLoading(true)
     setError(false)
     try {
-      const next = await loadCounselHandoff()
+      const next = await loadCounselHandoff(matterId)
       setData(next)
       setSelectedFileId((current) =>
         current && next.files.some((file) => file.id === current)
@@ -138,7 +141,7 @@ export function CounselHandoffView() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [matterId])
 
   useEffect(() => {
     void load()
@@ -184,22 +187,30 @@ export function CounselHandoffView() {
 
   return (
     <main className="page-view counsel-handoff">
-      <header className="page-header">
+      <BotanicalArt kind="app" className="counsel-handoff__art" />
+      <header className="page-header counsel-handoff__header">
         <div>
-          <span className="overline">Counsel handoff · private module</span>
-          <h1>Appeal {COUNSEL_HANDOFF_CASE_NUMBER}</h1>
-          <p>Lower Tribunal {COUNSEL_HANDOFF_LOWER_TRIBUNAL} · {data.matter.name}</p>
+          <a className="counsel-handoff__back" href={`#/app/matters/${encodeURIComponent(matterId)}`}>
+            <ChevronRight size={14} aria-hidden="true" /> Back to Parent Headquarters
+          </a>
+          <span className="overline">Legacy handoff archive · {data.role} matter role</span>
+          <h1>{data.matter.name}</h1>
+          <p>{data.matter.case_number ? `Case ${data.matter.case_number}` : "Case number not entered"} · {data.matter.active_proceeding || "Matter-specific counsel review"}</p>
         </div>
-        <Button icon={RefreshCw} variant="secondary" onClick={() => void load()}>
-          Refresh scan
-        </Button>
+        <div className="counsel-handoff__header-actions">
+          <span className="counsel-handoff__workspace-tag">Legacy inventory · owner review only</span>
+          <Button icon={RefreshCw} variant="secondary" onClick={() => void load()}>
+            Refresh scan
+          </Button>
+        </div>
       </header>
 
       <ReadingSurface className="counsel-handoff__guardrail">
         <LockKeyhole size={18} aria-hidden="true" />
         <span>
-          <strong>Authorized matter access only.</strong> AI triage is an
-          unverified suggestion and requires explicit counsel acceptance.
+          <strong>Legacy inventory review.</strong> This archive is visible to the matter owner in the application. The database still checks matter membership, so
+          object-specific sharing and Counsel Private isolation are not yet validated.
+          AI triage remains an unverified suggestion requiring human acceptance.
         </span>
       </ReadingSurface>
 
@@ -344,6 +355,7 @@ function HandoffInspector({
   }
 
   const save = async () => {
+    if (data.role === "viewer") return
     setBusy(true)
     setMessage("")
     try {
@@ -365,6 +377,7 @@ function HandoffInspector({
   }
 
   const triage = async () => {
+    if (data.role === "viewer") return
     setBusy(true)
     setMessage("")
     try {
@@ -405,11 +418,11 @@ function HandoffInspector({
       </dl>
       <label>
         Pathway rule
-        <input value={pathwayRule} onChange={(event) => setPathwayRule(event.target.value)} placeholder="Rule 9.200(f) or unverified" />
+        <input disabled={data.role === "viewer"} value={pathwayRule} onChange={(event) => setPathwayRule(event.target.value)} placeholder="Rule 9.200(f) or unverified" />
       </label>
       <label>
         Priority
-        <select value={priority} onChange={(event) => setPriority(event.target.value as HandoffFile["priority"])}>
+        <select disabled={data.role === "viewer"} value={priority} onChange={(event) => setPriority(event.target.value as HandoffFile["priority"])}>
           <option value="low">Low</option>
           <option value="normal">Normal</option>
           <option value="high">High</option>
@@ -417,18 +430,18 @@ function HandoffInspector({
         </select>
       </label>
       <label className="handoff-filter-check">
-        <input type="checkbox" checked={preservationFlag} onChange={(event) => setPreservationFlag(event.target.checked)} />
+        <input type="checkbox" disabled={data.role === "viewer"} checked={preservationFlag} onChange={(event) => setPreservationFlag(event.target.checked)} />
         Preservation Red Flag
       </label>
       <label>
-        Counsel notes
-        <textarea rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Record a review note without changing the source scan." />
+        Inventory review note (not attorney-private)
+        <textarea disabled={data.role === "viewer"} rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Legacy inventory note; not protected attorney work product." />
       </label>
       <div className="handoff-inspector__actions">
-        <Button icon={Save} variant="primary" disabled={busy} onClick={() => void save()}>
+        <Button icon={Save} variant="primary" disabled={busy || data.role === "viewer"} onClick={() => void save()}>
           Save review
         </Button>
-        <Button icon={Sparkles} variant="secondary" disabled={busy} onClick={() => void triage()}>
+        <Button icon={Sparkles} variant="secondary" disabled title="Unavailable until pre-AI-context object-grant filtering is tested" onClick={() => void triage()}>
           Suggest triage
         </Button>
       </div>
@@ -445,7 +458,7 @@ function HandoffInspector({
             {suggestion.rule9200LimitationNote && <div><dt>Rule 9.200(f) limitation</dt><dd>{suggestion.rule9200LimitationNote}</dd></div>}
           </dl>
           <div className="handoff-inspector__actions">
-            <Button variant="primary" onClick={acceptSuggestion}>Accept suggestion</Button>
+            <Button variant="primary" disabled={data.role === "viewer"} onClick={acceptSuggestion}>Accept suggestion</Button>
             <Button variant="ghost" onClick={dismissSuggestion}>Dismiss</Button>
           </div>
         </ReadingSurface>

@@ -9,7 +9,7 @@ const edge = read("../supabase/functions/make-server-82d9c8b6/index.ts");
 const triage = read("../supabase/functions/triage-counsel-handoff/index.ts");
 const app = read("../src/App.tsx");
 const triageConfig = read("../supabase/config.toml");
-const counselService = read("../src/services/counselHandoff.ts");
+const counselService = read("../src/handoff-module/legacyService.ts");
 const views = read("../src/features/views.tsx");
 const contextBar = read("../src/components/layout/ContextBar.tsx");
 const lib = read("../src/lib/supabase.ts");
@@ -36,7 +36,7 @@ test("browser configuration has no committed keys or private case examples", () 
   assert.doesNotMatch(demo, /\b\d{2}-20\d{2}-DP-\d{6}\b|real.case.identifier/i);
 });
 
-test("counsel handoff tables require matter membership and preserve review fields", () => {
+test("legacy counsel tables expose matter-membership access pending object-grant remediation", () => {
   for (const table of ["handoff_files", "evidence_pathways", "counsel_qa_items"]) {
     assert.match(handoffSql, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
     assert.match(handoffSql, new RegExp(`on public\\.${table} for select to authenticated`, "i"));
@@ -50,7 +50,7 @@ test("counsel handoff route and triage require authentication", () => {
   assert.match(app, /PrivateCounselHandoffRoute/);
   assert.match(app, /if \(!session\) return <SignInView \/>/);
   assert.match(triage, /Authentication required/);
-  assert.match(triage, /is_matter_member/);
+  assert.match(triage, /can_edit_matter/);
   assert.match(triage, /unverified/i);
   assert.match(triage, /responseSchema/);
   assert.match(triage, /GEMINI_MODEL/);
@@ -65,7 +65,10 @@ test("private workspace routes require session and selected matter", () => {
   assert.match(app, /function PrivateWorkspaceRoute/);
   assert.match(app, /if \(!session\) return <SignInView \/>/);
   assert.match(app, /if \(!getActiveMatterId\(\)\)/);
-  assert.match(app, /<Workspace privateMode \/>/);
+  assert.match(app, /<PrivateMatterWorkspace matterId=/);
+  assert.ok(app.includes("matters") && app.includes("counsel"));
+  assert.ok(counselService.includes('rpc("is_matter_member"'));
+  assert.ok(!counselService.includes('.eq("case_number"'));
   assert.match(views, /location\.hash = "#\/app"/);
   assert.match(contextBar, /privateMode \? "Private workspace" : "Fictional demo"/);
 });

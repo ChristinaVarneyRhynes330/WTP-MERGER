@@ -123,11 +123,11 @@ Deno.serve(async (request) => {
     const { data: user, error: userError } = await client.auth.getUser(token)
     if (userError || !user.user) throw new Error("Authentication required")
 
-    const { data: member, error: memberError } = await client.rpc("is_matter_member", {
+    const { data: member, error: memberError } = await client.rpc("can_edit_matter", {
       target_matter_id: matterId,
     })
     if (memberError) throw memberError
-    if (!member) return response({ error: "Matter access denied" }, 403)
+    if (!member) return response({ error: "This matter requires editor authorization for AI triage" }, 403)
 
     const { data: file, error: fileError } = await client
       .from("handoff_files")
