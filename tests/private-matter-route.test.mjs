@@ -75,3 +75,25 @@ test("private matter switch invalidates old source, answer and original-link res
   assert.match(matter, /matter\.id !== matterId/)
   assert.match(matter, /setSignedSource\(null\)/)
 })
+
+test("visual parity tranche uses teal-black materials with Canva workflow on authorized parent only", () => {
+  assert.match(matter, /<BotanicalArt kind="app" className="wtp-private-main-art"/)
+  assert.match(matter, /aria-label="Ten-stage parent journey"/)
+  assert.match(matter, /const parentJourney: Array/)
+  assert.match(matter, /className="wtp-private-attention-grid"/)
+  assert.match(matter, /className="wtp-private-heading wtp-private-heading--hero"/)
+  assert.match(style, /WTP VISUAL PARITY TRANCHE 1/)
+  for (const token of [
+    "--wtp-ink: #0f1a1c",
+    "--wtp-deep-teal: #183a3d",
+    "--wtp-dusty-rose: #b67872",
+    "--wtp-public-champagne: #c9a77d",
+    "--wtp-parchment: #f2e9e3",
+  ]) assert.ok(style.includes(token), "Missing shared palette token: " + token)
+  assert.match(style, /\.wtp-private-main-art \.art__veil/)
+  assert.match(style, /\.wtp-private-parent :is\(a,button,input,textarea\):focus-visible/)
+  assert.match(style, /@media\(max-width:620px\)/)
+  assert.match(style, /@media\(forced-colors:active\)/)
+  // The fictional AppProvider remains routed separately.
+  assert.match(app, /case "demo":\s*return \(\s*<AppProvider>/)
+})
