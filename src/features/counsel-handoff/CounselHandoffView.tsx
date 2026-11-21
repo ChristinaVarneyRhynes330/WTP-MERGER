@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, EmptyState, ReadingSurface } from "../../components/ui"
+import { BotanicalArt } from "../../components/brand"
 import {
   loadCounselHandoff,
   triageHandoffFile,
@@ -56,6 +57,10 @@ function buildTree(files: HandoffFile[]) {
   return root
 }
 
+function countTreeFiles(node: TreeNode): number {
+  return node.files.length + node.children.reduce((total, child) => total + countTreeFiles(child), 0)
+}
+
 function FolderTree({
   node,
   selectedPath,
@@ -88,7 +93,7 @@ function FolderTree({
         <button className="handoff-tree__label" onClick={() => onSelect(node.path)}>
           <FileText size={15} aria-hidden="true" />
           <span>{node.name}</span>
-          <small>{node.files.length + node.children.reduce((sum, child) => sum + child.files.length, 0)}</small>
+          <small title={`${countTreeFiles(node)} records in this folder and its subfolders`}>{countTreeFiles(node)}</small>
         </button>
       </div>
       {!isCollapsed && hasChildren && (
@@ -182,22 +187,30 @@ export function CounselHandoffView({ matterId }: { matterId: string }) {
 
   return (
     <main className="page-view counsel-handoff">
-      <header className="page-header">
+      <BotanicalArt kind="app" className="counsel-handoff__art" />
+      <header className="page-header counsel-handoff__header">
         <div>
-          <span className="overline">Counsel / reviewer workspace · {data.role} access</span>
+          <a className="counsel-handoff__back" href={`#/app/matters/${encodeURIComponent(matterId)}`}>
+            <ChevronRight size={14} aria-hidden="true" /> Back to Parent Headquarters
+          </a>
+          <span className="overline">Counsel / reviewer workspace · {data.role} matter role</span>
           <h1>{data.matter.name}</h1>
-          <p>{data.matter.case_number ? `Case ${data.matter.case_number}` : "Case number not provided"} · {data.matter.active_proceeding || "Matter-specific counsel review"}</p>
+          <p>{data.matter.case_number ? `Case ${data.matter.case_number}` : "Case number not entered"} · {data.matter.active_proceeding || "Matter-specific counsel review"}</p>
         </div>
-        <Button icon={RefreshCw} variant="secondary" onClick={() => void load()}>
-          Refresh scan
-        </Button>
+        <div className="counsel-handoff__header-actions">
+          <span className="counsel-handoff__workspace-tag">Controlled review · development</span>
+          <Button icon={RefreshCw} variant="secondary" onClick={() => void load()}>
+            Refresh scan
+          </Button>
+        </div>
       </header>
 
       <ReadingSurface className="counsel-handoff__guardrail">
         <LockKeyhole size={18} aria-hidden="true" />
         <span>
-          <strong>Authorized matter access only.</strong> AI triage is an
-          unverified suggestion and requires explicit counsel acceptance.
+          <strong>Draft access boundary.</strong> This view checks matter membership, but
+          object-specific sharing and Counsel Private isolation are not yet validated.
+          AI triage remains an unverified suggestion requiring human acceptance.
         </span>
       </ReadingSurface>
 
