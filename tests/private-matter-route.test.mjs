@@ -21,7 +21,7 @@ test("private app route renders matter-backed UI instead of fictitious AppProvid
 
 test("counsel route and service use authorized matter ID, never a case-number lookup", () => {
   assert.match(app, /app\\\/matters\\\//)
-  assert.match(app, /<HandoffModule key=\{match\[1\]\} matterId=/)
+  assert.match(app, /<HandoffModule key=\{\x60\$\{session\.user\.id\}:\$\{match\[1\]\}\x60\} matterId=/)
   assert.match(counsel, /loadCounselHandoff\(matterId\)/)
   assert.match(counselService, /rpc\("is_matter_member"/)
   assert.match(counselService, /\.eq\("id", matterId\)/)
